@@ -1,96 +1,93 @@
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&family=Bebas+Neue&family=Inter:wght@400;500;600;700;800;900&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* HOODLINGO Design System - Urban Hip-Hop Aesthetic */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core colors - bold urban palette */
+    --background: 220 15% 8%;
+    --foreground: 45 100% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card: 220 12% 12%;
+    --card-foreground: 45 100% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover: 220 12% 10%;
+    --popover-foreground: 45 100% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Gold/yellow primary accent */
+    --primary: 45 100% 50%;
+    --primary-foreground: 220 15% 8%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Urban gray secondary */
+    --secondary: 220 10% 18%;
+    --secondary-foreground: 45 100% 95%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 220 10% 20%;
+    --muted-foreground: 220 10% 60%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Vibrant accent colors for categories */
+    --accent: 25 100% 55%;
+    --accent-foreground: 220 15% 8%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 45 100% 95%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Success green for correct answers */
+    --success: 142 76% 36%;
+    --success-foreground: 45 100% 95%;
 
-    --radius: 0.5rem;
+    --border: 220 10% 22%;
+    --input: 220 10% 18%;
+    --ring: 45 100% 50%;
 
-    --sidebar-background: 0 0% 98%;
+    --radius: 0.75rem;
 
-    --sidebar-foreground: 240 5.3% 26.1%;
+    /* Category colors */
+    --rap: 45 100% 50%;
+    --streets: 0 72% 51%;
+    --flicks: 262 83% 58%;
+    --stores: 142 76% 36%;
 
-    --sidebar-primary: 240 5.9% 10%;
+    /* Arcade/retro colors */
+    --neon-pink: 330 100% 60%;
+    --neon-blue: 195 100% 50%;
+    --neon-green: 120 100% 50%;
 
-    --sidebar-primary-foreground: 0 0% 98%;
-
-    --sidebar-accent: 240 4.8% 95.9%;
-
-    --sidebar-accent-foreground: 240 5.9% 10%;
-
-    --sidebar-border: 220 13% 91%;
-
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Sidebar */
+    --sidebar-background: 220 15% 10%;
+    --sidebar-foreground: 45 100% 95%;
+    --sidebar-primary: 45 100% 50%;
+    --sidebar-primary-foreground: 220 15% 8%;
+    --sidebar-accent: 220 10% 15%;
+    --sidebar-accent-foreground: 45 100% 95%;
+    --sidebar-border: 220 10% 20%;
+    --sidebar-ring: 45 100% 50%;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --background: 220 15% 8%;
+    --foreground: 45 100% 95%;
+    --card: 220 12% 12%;
+    --card-foreground: 45 100% 95%;
+    --popover: 220 12% 10%;
+    --popover-foreground: 45 100% 95%;
+    --primary: 45 100% 50%;
+    --primary-foreground: 220 15% 8%;
+    --secondary: 220 10% 18%;
+    --secondary-foreground: 45 100% 95%;
+    --muted: 220 10% 20%;
+    --muted-foreground: 220 10% 60%;
+    --accent: 25 100% 55%;
+    --accent-foreground: 220 15% 8%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 45 100% 95%;
+    --border: 220 10% 22%;
+    --input: 220 10% 18%;
+    --ring: 45 100% 50%;
   }
 }
 
@@ -100,6 +97,128 @@ All colors MUST be HSL.
   }
 
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans antialiased;
   }
+}
+
+@layer components {
+  .font-display {
+    font-family: 'Russo One', sans-serif;
+  }
+
+  .font-heading {
+    font-family: 'Bebas Neue', sans-serif;
+  }
+
+  /* Urban gradient overlays */
+  .urban-gradient {
+    background: linear-gradient(
+      180deg,
+      hsl(220 15% 8% / 0.3) 0%,
+      hsl(220 15% 8% / 0.7) 50%,
+      hsl(220 15% 8% / 0.95) 100%
+    );
+  }
+
+  /* Category button styles */
+  .category-btn {
+    @apply relative overflow-hidden rounded-xl px-8 py-4 font-display text-lg uppercase tracking-wider transition-all duration-300;
+    @apply shadow-lg hover:shadow-xl hover:scale-105 active:scale-95;
+  }
+
+  .category-btn-rap {
+    @apply bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 text-background;
+  }
+
+  .category-btn-streets {
+    @apply bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-foreground;
+  }
+
+  .category-btn-flicks {
+    @apply bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 text-foreground;
+  }
+
+  .category-btn-stores {
+    @apply bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 text-foreground;
+  }
+
+  /* Quiz card styles */
+  .quiz-card {
+    @apply rounded-2xl bg-card/95 backdrop-blur-sm p-6 shadow-2xl;
+    border: 1px solid hsl(var(--border));
+  }
+
+  /* Answer option button */
+  .answer-option {
+    @apply w-full rounded-xl bg-secondary px-6 py-4 text-left font-semibold transition-all duration-200;
+    @apply hover:bg-secondary/80 hover:scale-[1.02] active:scale-[0.98];
+    @apply border-2 border-transparent;
+  }
+
+  .answer-option-correct {
+    @apply bg-success/20 border-success text-success;
+  }
+
+  .answer-option-wrong {
+    @apply bg-destructive/20 border-destructive text-destructive;
+  }
+
+  /* Arcade leaderboard styling */
+  .arcade-text {
+    font-family: 'Bebas Neue', sans-serif;
+    text-shadow: 
+      0 0 10px hsl(var(--primary)),
+      0 0 20px hsl(var(--primary) / 0.5),
+      0 0 30px hsl(var(--primary) / 0.3);
+  }
+
+  .arcade-border {
+    border: 3px solid hsl(var(--primary));
+    box-shadow: 
+      0 0 10px hsl(var(--primary) / 0.3),
+      inset 0 0 10px hsl(var(--primary) / 0.1);
+  }
+
+  /* Neon glow effects */
+  .neon-glow {
+    text-shadow: 
+      0 0 5px currentColor,
+      0 0 10px currentColor,
+      0 0 20px currentColor;
+  }
+
+  /* Avatar selection ring */
+  .avatar-ring {
+    @apply ring-4 ring-primary ring-offset-2 ring-offset-background;
+  }
+
+  /* Scrolling animation for arcade leaderboard */
+  @keyframes arcade-scroll {
+    0% { transform: translateY(100%); }
+    100% { transform: translateY(-100%); }
+  }
+
+  .arcade-scroll {
+    animation: arcade-scroll 15s linear infinite;
+  }
+
+  /* Pulse animation for buttons */
+  @keyframes pulse-glow {
+    0%, 100% { box-shadow: 0 0 5px hsl(var(--primary)), 0 0 10px hsl(var(--primary) / 0.5); }
+    50% { box-shadow: 0 0 20px hsl(var(--primary)), 0 0 40px hsl(var(--primary) / 0.5); }
+  }
+
+  .pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+}
+
+/* Hide scrollbar but allow scrolling */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
