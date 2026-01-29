@@ -10,117 +10,141 @@ interface HomeScreenProps {
 }
 
 const categories = [
-  { id: 'rap', name: 'Rap', color: 'bg-yellow-400 text-black' },
-  { id: 'streets', name: 'These Streets', color: 'bg-red-500 text-white' },
-  { id: 'flicks', name: 'Hood Flicks', color: 'bg-purple-500 text-white' },
-  { id: 'stores', name: 'Corner Stores', color: 'bg-green-500 text-white' },
+  { id: 'rap', name: 'Rap', color: 'bg-yellow-400 text-gray-900' },
+  { id: 'streets', name: 'These Streets', color: 'bg-orange-400 text-white' },
+  { id: 'flicks', name: 'Hood Flicks', color: 'bg-orange-500 text-white' },
+  { id: 'stores', name: 'Corner Stores', color: 'bg-cyan-500 text-white' },
 ];
 
 export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
-  const { profile, user } = useAuth();
+  const { profile } = useAuth();
   const avatar = getAvatarById(profile?.avatar_id || 'avatar1') || avatars[0];
 
   return (
-    <div className="min-h-screen home-gradient flex flex-col">
+    <div className="min-h-screen flex flex-col relative overflow-hidden">
+      {/* Urban project background - top half */}
+      <div 
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{
+          backgroundImage: `url('https://images.unsplash.com/photo-1555992457-b8fefdd09069?w=800&q=80')`,
+        }}
+      />
+      
+      {/* Gradient overlay for bottom section */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-slate-100" 
+           style={{ top: '40%' }} 
+      />
+      <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-slate-100" />
+
       {/* Header */}
       <header className="relative z-10 flex items-center justify-between p-4">
         <Button
           variant="ghost"
-          size="icon"
+          size="sm"
           onClick={onMenuClick}
-          className="text-white hover:bg-white/10"
+          className="text-gray-800 bg-white/80 hover:bg-white gap-2 rounded-lg"
         >
-          <Menu className="h-6 w-6" />
+          <Menu className="h-5 w-5" />
+          <span className="font-medium">Menu</span>
         </Button>
 
         <motion.div
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
-          className={`h-10 w-10 rounded-full ${avatar.style} flex items-center justify-center text-lg border-2 border-white/30`}
+          className={`h-12 w-12 rounded-full ${avatar.style} flex items-center justify-center text-xl border-2 border-white shadow-lg`}
         >
           {avatar.emoji}
         </motion.div>
       </header>
 
       {/* Main Content */}
-      <main className="relative z-10 flex-1 flex flex-col items-center justify-center px-8 pb-16">
-        {/* Logo & Title */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
-          <motion.div 
-            className="text-6xl mb-4"
-            animate={{ rotate: [0, -5, 5, 0] }}
-            transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+      <main className="relative z-10 flex-1 flex flex-col">
+        {/* Logo Section - in the image area */}
+        <div className="flex-1 flex flex-col items-center justify-center px-8 pt-8">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center"
           >
-            🧠
-          </motion.div>
-          <h1 className="font-display text-5xl text-white tracking-wide mb-3">
-            HOODLINGO
-          </h1>
-          <p className="text-white/80 text-sm font-medium tracking-wide uppercase">
-            IF YOU AIN'T NEVER WORN TIMBS,
-          </p>
-        </motion.div>
-
-        {/* "What Do You Really Know About?" */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="text-white text-xl font-medium mb-6"
-        >
-          What Do You Really Know About?
-        </motion.p>
-
-        {/* Category Buttons */}
-        <div className="flex flex-wrap justify-center gap-3 max-w-sm">
-          {categories.map((category, index) => (
-            <motion.button
-              key={category.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.3 + index * 0.1 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => onCategorySelect(category.id)}
-              disabled={category.id !== 'rap'}
-              className={`
-                ${category.color} 
-                px-6 py-3 rounded-full font-bold text-sm
-                shadow-lg transition-all duration-200
-                disabled:opacity-50 disabled:cursor-not-allowed
-                ${category.id === 'rap' ? 'ring-2 ring-white/50' : ''}
-              `}
+            {/* Brain Logo */}
+            <motion.div 
+              className="w-24 h-24 mx-auto mb-4 bg-white/90 rounded-3xl flex items-center justify-center shadow-xl"
+              animate={{ rotate: [0, -3, 3, 0] }}
+              transition={{ duration: 3, repeat: Infinity, repeatDelay: 2 }}
             >
-              {category.name}
-              {category.id !== 'rap' && (
-                <span className="ml-1 opacity-70">(Soon)</span>
-              )}
-            </motion.button>
-          ))}
+              <span className="text-5xl">🧠</span>
+            </motion.div>
+            
+            <h1 className="font-display text-4xl text-primary tracking-wide mb-1">
+              HOODLINGO
+            </h1>
+            <p className="text-primary/80 text-sm font-medium tracking-wide">
+              SHANT-KNOWS-IT-ALL PRESENTS
+            </p>
+          </motion.div>
         </div>
 
-        {/* Games played indicator */}
-        {profile && (
+        {/* Bottom Content - on light background */}
+        <div className="bg-slate-100 px-6 pb-8 pt-6">
+          {/* Tagline */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.7 }}
-            className="mt-10 text-center"
+            transition={{ delay: 0.2 }}
+            className="text-center mb-6"
           >
-            <p className="text-white/60 text-sm">
-              Games played: <span className="text-white font-bold">{profile.games_played || 0}</span>
+            <h2 className="font-display text-2xl text-primary leading-tight mb-2">
+              IF YOU AIN'T NEVER WORN TIMBS, TURN BACK!
+            </h2>
+            <p className="text-gray-600 text-base">
+              What Do You Really Know About?
             </p>
-            {!profile.has_paid && (profile.games_played || 0) >= 2 && (
-              <p className="text-yellow-300 text-xs mt-1">
-                🔒 Unlock unlimited games for $1!
-              </p>
-            )}
+            <div className="w-full h-px bg-gray-300 mt-4" />
           </motion.div>
-        )}
+
+          {/* Category Buttons - 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-3 max-w-sm mx-auto">
+            {categories.map((category, index) => (
+              <motion.button
+                key={category.id}
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.3 + index * 0.1 }}
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.97 }}
+                onClick={() => onCategorySelect(category.id)}
+                disabled={category.id !== 'rap'}
+                className={`
+                  ${category.color} 
+                  px-4 py-4 rounded-xl font-bold text-base
+                  shadow-md transition-all duration-200
+                  disabled:opacity-60 disabled:cursor-not-allowed
+                `}
+              >
+                {category.name}
+              </motion.button>
+            ))}
+          </div>
+
+          {/* Games played indicator */}
+          {profile && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+              className="mt-6 text-center"
+            >
+              <p className="text-gray-500 text-sm">
+                Games played: <span className="text-gray-800 font-bold">{profile.games_played || 0}</span>
+              </p>
+              {!profile.has_paid && (profile.games_played || 0) >= 2 && (
+                <p className="text-orange-500 text-xs mt-1">
+                  🔒 Unlock unlimited games for $1!
+                </p>
+              )}
+            </motion.div>
+          )}
+        </div>
       </main>
     </div>
   );
