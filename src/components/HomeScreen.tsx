@@ -3,6 +3,7 @@ import { Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { avatars, getAvatarById } from '@/data/avatars';
+import housingProjectBg from '@/assets/housing-project-bg.jpg';
 
 interface HomeScreenProps {
   onCategorySelect: (category: string) => void;
@@ -26,7 +27,7 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
         style={{
-          backgroundImage: `url('https://images.unsplash.com/photo-1555992457-b8fefdd09069?w=800&q=80')`,
+          backgroundImage: `url(${housingProjectBg})`,
         }}
       />
       
