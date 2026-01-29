@@ -11,55 +11,79 @@ interface ResultScreenProps {
 
 export function ResultScreen({ question, isCorrect, onContinue, isGameOver }: ResultScreenProps) {
   return (
-    <div className="min-h-screen bg-background flex flex-col">
-      {/* Background */}
-      <div className="fixed inset-0 bg-[url('https://images.unsplash.com/photo-1514539079130-25950c84af65?w=800')] bg-cover bg-center opacity-30" />
-      <div className="fixed inset-0 urban-gradient" />
-
+    <div className="min-h-screen result-gradient flex flex-col">
       <main className="relative z-10 flex-1 flex flex-col items-center justify-center p-6">
         <motion.div
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
           transition={{ type: 'spring', damping: 15 }}
-          className="quiz-card w-full max-w-sm text-center"
+          className="w-full max-w-sm text-center"
         >
-          {/* Result Emoji */}
-          <motion.div
-            initial={{ rotate: -180, scale: 0 }}
-            animate={{ rotate: 0, scale: 1 }}
-            transition={{ delay: 0.2, type: 'spring' }}
-            className="text-7xl mb-4"
-          >
-            {isCorrect ? '🔥' : '😤'}
-          </motion.div>
-
           {/* Result Title */}
           <motion.h2
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className={`font-display text-3xl mb-4 ${isCorrect ? 'text-success' : 'text-destructive'}`}
+            transition={{ delay: 0.1 }}
+            className={`font-display text-2xl mb-6 ${isCorrect ? 'text-white' : 'text-red-300'}`}
           >
-            {isCorrect ? question.resultTitle : 'NAH BRUH!'}
+            {isCorrect ? question.resultTitle : 'NAH BRUH! 😤'}
           </motion.h2>
+
+          {/* Album/Result Image */}
+          {question.resultImageUrl && isCorrect && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="relative mb-6"
+            >
+              <div className="w-48 h-48 mx-auto rounded-lg overflow-hidden shadow-2xl ring-4 ring-white/20">
+                <img 
+                  src={question.resultImageUrl} 
+                  alt={question.correctAnswer}
+                  className="w-full h-full object-cover"
+                />
+              </div>
+              {/* Explicit label overlay */}
+              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
+                <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded">
+                  🔥 CORRECT
+                </span>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Wrong answer indicator */}
+          {!isCorrect && (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.2 }}
+              className="mb-6"
+            >
+              <div className="w-32 h-32 mx-auto rounded-full bg-destructive/20 flex items-center justify-center">
+                <span className="text-6xl">❌</span>
+              </div>
+            </motion.div>
+          )}
 
           {/* Correct Answer */}
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.4 }}
+            transition={{ delay: 0.3 }}
             className="mb-4"
           >
-            <p className="text-muted-foreground text-sm mb-1">The answer was:</p>
-            <p className="text-primary font-bold text-xl">{question.correctAnswer}</p>
+            <p className="text-white/60 text-sm mb-1">The answer was:</p>
+            <p className="text-primary font-bold text-2xl">{question.correctAnswer}</p>
           </motion.div>
 
           {/* Commentary */}
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="text-foreground text-sm mb-6"
+            transition={{ delay: 0.4 }}
+            className="text-white/80 text-sm mb-8 px-4 leading-relaxed"
           >
             {isCorrect ? question.resultCommentary : `The correct answer was ${question.correctAnswer}. Next time you'll know!`}
           </motion.p>
@@ -68,13 +92,13 @@ export function ResultScreen({ question, isCorrect, onContinue, isGameOver }: Re
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.6 }}
+            transition={{ delay: 0.5 }}
           >
             <Button
               onClick={onContinue}
-              className="w-full font-display text-lg py-6 bg-primary text-primary-foreground hover:bg-primary/90 pulse-glow"
+              className="w-full font-display text-lg py-6 bg-white text-primary-foreground hover:bg-white/90 rounded-full shadow-lg"
             >
-              {isGameOver ? 'SEE RESULTS' : 'NEXT QUESTION'}
+              {isGameOver ? 'SEE RESULTS' : 'NEXT QUESTION →'}
             </Button>
           </motion.div>
         </motion.div>

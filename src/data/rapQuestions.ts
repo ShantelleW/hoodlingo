@@ -7,6 +7,7 @@ export interface Question {
   correctAnswer: string;
   resultTitle: string;
   resultCommentary: string;
+  resultImageUrl?: string;
 }
 
 export const rapQuestions: Question[] = [

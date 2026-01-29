@@ -110,57 +110,69 @@
     font-family: 'Bebas Neue', sans-serif;
   }
 
-  /* Urban gradient overlays */
-  .urban-gradient {
+  /* Home screen gradient - purple to dark purple */
+  .home-gradient {
     background: linear-gradient(
       180deg,
-      hsl(220 15% 8% / 0.3) 0%,
-      hsl(220 15% 8% / 0.7) 50%,
-      hsl(220 15% 8% / 0.95) 100%
+      hsl(270 50% 35%) 0%,
+      hsl(270 60% 20%) 50%,
+      hsl(270 70% 12%) 100%
     );
   }
 
-  /* Category button styles */
-  .category-btn {
-    @apply relative overflow-hidden rounded-xl px-8 py-4 font-display text-lg uppercase tracking-wider transition-all duration-300;
-    @apply shadow-lg hover:shadow-xl hover:scale-105 active:scale-95;
+  /* Quiz screen gradient */
+  .quiz-gradient {
+    background: linear-gradient(
+      180deg,
+      hsl(270 50% 30%) 0%,
+      hsl(270 60% 18%) 100%
+    );
   }
 
-  .category-btn-rap {
-    @apply bg-gradient-to-br from-yellow-400 via-yellow-500 to-orange-500 text-background;
+  /* Result screen gradient */
+  .result-gradient {
+    background: linear-gradient(
+      180deg,
+      hsl(270 50% 25%) 0%,
+      hsl(270 65% 15%) 100%
+    );
   }
 
-  .category-btn-streets {
-    @apply bg-gradient-to-br from-red-500 via-red-600 to-rose-700 text-foreground;
+  /* Question card - purple rounded card */
+  .question-card {
+    @apply rounded-3xl p-6;
+    background: linear-gradient(
+      135deg,
+      hsl(270 40% 45%) 0%,
+      hsl(270 50% 35%) 100%
+    );
+    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.5);
   }
 
-  .category-btn-flicks {
-    @apply bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700 text-foreground;
+  /* Answer chip - rounded pill style */
+  .answer-chip {
+    @apply w-full rounded-full bg-gray-600/80 px-6 py-4 text-center text-white font-medium;
+    @apply transition-all duration-200 hover:bg-gray-500/80;
+    @apply active:scale-[0.98];
   }
 
-  .category-btn-stores {
-    @apply bg-gradient-to-br from-green-500 via-green-600 to-emerald-700 text-foreground;
+  .answer-chip-correct {
+    @apply bg-green-500 text-white;
   }
 
-  /* Quiz card styles */
-  .quiz-card {
-    @apply rounded-2xl bg-card/95 backdrop-blur-sm p-6 shadow-2xl;
-    border: 1px solid hsl(var(--border));
+  .answer-chip-wrong {
+    @apply bg-red-500 text-white animate-shake;
   }
 
-  /* Answer option button */
-  .answer-option {
-    @apply w-full rounded-xl bg-secondary px-6 py-4 text-left font-semibold transition-all duration-200;
-    @apply hover:bg-secondary/80 hover:scale-[1.02] active:scale-[0.98];
-    @apply border-2 border-transparent;
+  /* Shake animation for wrong answers */
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%, 60% { transform: translateX(-5px); }
+    40%, 80% { transform: translateX(5px); }
   }
 
-  .answer-option-correct {
-    @apply bg-success/20 border-success text-success;
-  }
-
-  .answer-option-wrong {
-    @apply bg-destructive/20 border-destructive text-destructive;
+  .animate-shake {
+    animation: shake 0.4s ease-in-out;
   }
 
   /* Arcade leaderboard styling */
