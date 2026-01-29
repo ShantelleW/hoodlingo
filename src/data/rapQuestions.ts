@@ -1,3 +1,8 @@
+import resultJayzHardknock from '@/assets/result-jayz-hardknock.jpg';
+import resultNasRuled from '@/assets/result-nas-ruled.jpg';
+import resultYmcmb from '@/assets/result-ymcmb.jpg';
+import resultDmx from '@/assets/result-dmx.jpg';
+
 export interface Question {
   id: string;
   category: string;
@@ -11,6 +16,52 @@ export interface Question {
 }
 
 export const rapQuestions: Question[] = [
+  // Questions from reference - these go first!
+  {
+    id: "rap-ref-1",
+    category: "rap",
+    question: "Who rapped It's A Hardknock Life?",
+    hint: "Orphan Annie was definitely in the Ghetto tho...",
+    options: ["Biggie", "Nas", "Jay-Z", "Lil Wayne"],
+    correctAnswer: "Jay-Z",
+    resultTitle: "Jay-Z Duh! JIGGA took off with this one!",
+    resultCommentary: "My Auntie Tots loved him, so I used to pull up bumping Ether!",
+    resultImageUrl: resultJayzHardknock
+  },
+  {
+    id: "rap-ref-2",
+    category: "rap",
+    question: "If I Ruled the World, Who would I Free?",
+    hint: "Nas and Lauryn Hill - 2 Goats, 1 Track.",
+    options: ["All My Sons", "All The Scrubs", "Hoodrats and Hoochies", "Cash from the Bank"],
+    correctAnswer: "All My Sons",
+    resultTitle: "Correct! All My Sons",
+    resultCommentary: "\"I Love 'em Love 'em Baby!\" Nas and Lauryn made magic on this one!",
+    resultImageUrl: resultNasRuled
+  },
+  {
+    id: "rap-ref-3",
+    category: "rap",
+    question: "Who was NEVER a part of YMCMB?",
+    hint: "That's Young Money Cash Money Billionaires Baby! -Lil Wayne's Legacy-A Living Legend!",
+    options: ["Tyga", "Nicki Minaj", "Shanell", "Drake", "Black Chyna"],
+    correctAnswer: "Black Chyna",
+    resultTitle: "CORRECT! I Ain't Think You Was Gonna Get It.",
+    resultCommentary: "Blac Chyna was in the videos, but Shanell was in the group...",
+    resultImageUrl: resultYmcmb
+  },
+  {
+    id: "rap-ref-4",
+    category: "rap",
+    question: "What's DMX's Real Name and Where's He From?",
+    hint: "My Favorite DMX songs are Get At Me Dog, Damien, 24hrs to Live, Slippin, and Track 19 on It's Dark and Hell is Hot.",
+    options: ["Earl Simmons, Yonkers", "Damien Xavier, Brooklyn", "Clifford Smith, Staten Island", "Kasseem, The Bronx"],
+    correctAnswer: "Earl Simmons, Yonkers",
+    resultTitle: "The Dark Man X was born Earl Simmons December 18, 1970 (Sagittarius)",
+    resultCommentary: "Earl Simmons could be found speeding through Yonkers at the top of his fame! RIP to a legend!",
+    resultImageUrl: resultDmx
+  },
+  // Original questions continue
   {
     id: "rap-1",
     category: "rap",

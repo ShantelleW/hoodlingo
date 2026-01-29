@@ -24,10 +24,22 @@ export function ResultScreen({ question, isCorrect, onContinue, isGameOver }: Re
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className={`font-display text-2xl mb-6 ${isCorrect ? 'text-white' : 'text-red-300'}`}
+            className={`font-display text-xl mb-2 ${isCorrect ? 'text-white' : 'text-red-300'}`}
           >
             {isCorrect ? question.resultTitle : 'NAH BRUH! 😤'}
           </motion.h2>
+
+          {/* Sub-commentary for correct answers */}
+          {isCorrect && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.15 }}
+              className="text-white/70 text-sm mb-4 italic"
+            >
+              {question.resultCommentary}
+            </motion.p>
+          )}
 
           {/* Album/Result Image */}
           {question.resultImageUrl && isCorrect && (
@@ -37,18 +49,12 @@ export function ResultScreen({ question, isCorrect, onContinue, isGameOver }: Re
               transition={{ delay: 0.2 }}
               className="relative mb-6"
             >
-              <div className="w-48 h-48 mx-auto rounded-lg overflow-hidden shadow-2xl ring-4 ring-white/20">
+              <div className="w-64 h-64 mx-auto rounded-lg overflow-hidden shadow-2xl ring-4 ring-white/20">
                 <img 
                   src={question.resultImageUrl} 
                   alt={question.correctAnswer}
                   className="w-full h-full object-cover"
                 />
-              </div>
-              {/* Explicit label overlay */}
-              <div className="absolute -bottom-2 left-1/2 -translate-x-1/2">
-                <span className="bg-white text-black text-xs font-bold px-3 py-1 rounded">
-                  🔥 CORRECT
-                </span>
               </div>
             </motion.div>
           )}
@@ -67,26 +73,42 @@ export function ResultScreen({ question, isCorrect, onContinue, isGameOver }: Re
             </motion.div>
           )}
 
-          {/* Correct Answer */}
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-            className="mb-4"
-          >
-            <p className="text-white/60 text-sm mb-1">The answer was:</p>
-            <p className="text-primary font-bold text-2xl">{question.correctAnswer}</p>
-          </motion.div>
+          {/* Correct Answer - only show if no image was shown */}
+          {(!question.resultImageUrl || !isCorrect) && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="mb-4"
+            >
+              <p className="text-white/60 text-sm mb-1">The answer was:</p>
+              <p className="text-primary font-bold text-2xl">{question.correctAnswer}</p>
+            </motion.div>
+          )}
 
-          {/* Commentary */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.4 }}
-            className="text-white/80 text-sm mb-8 px-4 leading-relaxed"
-          >
-            {isCorrect ? question.resultCommentary : `The correct answer was ${question.correctAnswer}. Next time you'll know!`}
-          </motion.p>
+          {/* Show just the answer below image if image was shown */}
+          {question.resultImageUrl && isCorrect && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mb-4"
+            >
+              <p className="text-primary font-bold text-lg">{question.correctAnswer}</p>
+            </motion.div>
+          )}
+
+          {/* Commentary for wrong answers */}
+          {!isCorrect && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4 }}
+              className="text-white/80 text-sm mb-8 px-4 leading-relaxed"
+            >
+              The correct answer was {question.correctAnswer}. Next time you'll know!
+            </motion.p>
+          )}
 
           {/* Continue Button */}
           <motion.div
