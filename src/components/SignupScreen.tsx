@@ -15,11 +15,11 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [doorsOpen, setDoorsOpen] = useState(false);
+  const [doorOpen, setDoorOpen] = useState(false);
   const { signUp, signIn } = useAuth();
 
-  const handleOpenDoors = () => {
-    setDoorsOpen(true);
+  const handleOpenDoor = () => {
+    setDoorOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -49,52 +49,52 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-50 flex items-center justify-center"
+      className="fixed inset-0 z-50"
+      style={{ perspective: '1200px' }}
     >
-      {/* Dark backdrop */}
-      <div className="absolute inset-0 bg-black" />
+      {/* Dark lobby interior behind door */}
+      <div className="absolute inset-0 bg-gradient-to-b from-amber-950 via-stone-900 to-black" />
+      
+      {/* Dim lobby lighting effect */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl" />
 
-      {/* Signup form - revealed behind doors */}
-      <div className="absolute inset-0 flex items-center justify-center p-6 bg-gradient-to-b from-amber-900/90 to-stone-900">
+      {/* Signup form - inside the lobby */}
+      <div className="absolute inset-0 flex items-center justify-center p-6">
         <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: doorsOpen ? 1 : 0, scale: doorsOpen ? 1 : 0.9 }}
-          transition={{ delay: 0.3, duration: 0.5 }}
-          className="w-full max-w-sm bg-white rounded-3xl p-6 shadow-2xl"
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: doorOpen ? 1 : 0, y: doorOpen ? 0 : 30 }}
+          transition={{ delay: 0.5, duration: 0.6 }}
+          className="w-full max-w-sm bg-white/95 backdrop-blur rounded-2xl p-6 shadow-2xl"
         >
           {/* Header */}
           <div className="text-center mb-6">
             <div className="text-4xl mb-2">🧠</div>
             <h2 className="font-display text-2xl text-gray-900">
-              {isLogin ? 'WELCOME BACK' : 'ENTER THE BUILDING'}
+              {isLogin ? 'WELCOME BACK' : 'YOU\'RE IN'}
             </h2>
             <p className="text-gray-500 text-sm mt-1">
-              {isLogin ? 'Sign in to continue' : 'Quick signup to play'}
+              {isLogin ? 'Sign in to continue' : 'Sign up to play'}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Input
-                type="email"
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-6"
-                required
-              />
-            </div>
-            <div>
-              <Input
-                type="password"
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-6"
-                required
-                minLength={6}
-              />
-            </div>
+            <Input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-6"
+              required
+            />
+            <Input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-6"
+              required
+              minLength={6}
+            />
 
             {error && (
               <motion.p
@@ -127,92 +127,57 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
         </motion.div>
       </div>
 
-      {/* Double doors with door image */}
+      {/* Single door that swings open */}
       <AnimatePresence>
-        {!doorsOpen && (
-          <>
-            {/* Left door */}
-            <motion.div
-              initial={{ rotateY: 0 }}
-              exit={{ rotateY: -110 }}
-              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute left-0 top-0 bottom-0 w-1/2 origin-left"
-              style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-right"
-                style={{ 
-                  backgroundImage: `url(${projectDoor})`,
-                  clipPath: 'inset(0 0 0 0)',
-                }}
-              />
-              {/* Door shadow overlay */}
-              <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent" />
-            </motion.div>
-
-            {/* Right door */}
-            <motion.div
-              initial={{ rotateY: 0 }}
-              exit={{ rotateY: 110 }}
-              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-              className="absolute right-0 top-0 bottom-0 w-1/2 origin-right"
-              style={{ perspective: '1000px', transformStyle: 'preserve-3d' }}
-            >
-              <div 
-                className="absolute inset-0 bg-cover bg-left"
-                style={{ 
-                  backgroundImage: `url(${projectDoor})`,
-                  clipPath: 'inset(0 0 0 0)',
-                }}
-              />
-              {/* Door shadow overlay */}
-              <div className="absolute inset-0 bg-gradient-to-l from-black/20 to-transparent" />
-            </motion.div>
-
-            {/* Door handles/center line */}
-            <motion.div 
-              exit={{ opacity: 0 }}
-              className="absolute left-1/2 top-0 bottom-0 w-1 bg-black/30 -translate-x-1/2 z-10"
+        {!doorOpen && (
+          <motion.div
+            initial={{ rotateY: 0 }}
+            exit={{ rotateY: -95 }}
+            transition={{ duration: 1, ease: [0.4, 0, 0.2, 1] }}
+            className="absolute inset-0 origin-left"
+            style={{ transformStyle: 'preserve-3d' }}
+          >
+            {/* Door image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center"
+              style={{ backgroundImage: `url(${projectDoor})` }}
             />
+            
+            {/* Door edge shadow when swinging */}
+            <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/40 to-transparent" />
 
             {/* Tap to enter overlay */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+              exit={{ opacity: 0, transition: { duration: 0.2 } }}
               transition={{ delay: 0.5 }}
-              className="absolute inset-0 flex flex-col items-center justify-center z-20 cursor-pointer"
-              onClick={handleOpenDoors}
+              className="absolute inset-0 flex flex-col items-center justify-center cursor-pointer"
+              onClick={handleOpenDoor}
             >
-              {/* Building number sign */}
+              {/* HOODLINGO sign */}
               <motion.div
                 initial={{ y: -20, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.8 }}
-                className="bg-white/90 px-6 py-2 rounded-lg mb-8 shadow-lg"
+                className="absolute top-24 bg-white/90 px-6 py-3 rounded-lg shadow-xl"
               >
-                <p className="font-display text-gray-800 text-lg">🧠 HOODLINGO</p>
+                <p className="font-display text-gray-800 text-xl tracking-wide">🧠 HOODLINGO</p>
               </motion.div>
 
+              {/* Enter button */}
               <motion.div
                 animate={{ scale: [1, 1.05, 1] }}
                 transition={{ duration: 2, repeat: Infinity }}
-                className="text-center"
+                className="mt-20"
               >
-                <div className="bg-primary text-primary-foreground px-8 py-4 rounded-2xl shadow-2xl">
-                  <p className="font-display text-xl">TAP TO ENTER</p>
-                  <p className="text-sm opacity-80 mt-1">Welcome to the building</p>
+                <div className="bg-primary text-primary-foreground px-10 py-5 rounded-2xl shadow-2xl border-2 border-primary-foreground/20">
+                  <p className="font-display text-2xl">BUZZ IN 🔔</p>
+                  <p className="text-sm opacity-80 mt-1 text-center">Tap to enter</p>
                 </div>
               </motion.div>
-
-              {/* Metal railings decoration */}
-              <div className="absolute bottom-20 left-0 right-0 flex justify-center gap-2">
-                {[...Array(8)].map((_, i) => (
-                  <div key={i} className="w-1 h-16 bg-gray-600 rounded-full" />
-                ))}
-              </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </motion.div>
