@@ -40,7 +40,7 @@ function GameContent() {
     // Check paywall - after 2 free games
     if (profile && !profile.has_paid && (profile.games_played || 0) >= 2) {
       toast.error('🔒 You\'ve used your free games! Unlock unlimited play for $1.');
-      // TODO: Open Stripe checkout
+      window.open('https://buy.stripe.com/cNi8wRfKe03D41g6uPfYY00', '_blank');
       return;
     }
 
@@ -72,6 +72,7 @@ function GameContent() {
     // Check paywall again
     if (profile && !profile.has_paid && (profile.games_played || 0) >= 2) {
       toast.error('🔒 You\'ve used your free games! Unlock unlimited play for $1.');
+      window.open('https://buy.stripe.com/cNi8wRfKe03D41g6uPfYY00', '_blank');
       return;
     }
     
