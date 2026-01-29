@@ -138,6 +138,23 @@
     );
   }
 
+  /* Enhanced result gradient with layered effect */
+  .result-gradient-enhanced {
+    background: 
+      linear-gradient(
+        to bottom right,
+        hsla(280, 50%, 30%, 0.3) 0%,
+        transparent 50%,
+        hsla(240, 40%, 20%, 0.2) 100%
+      ),
+      linear-gradient(
+        180deg,
+        hsl(270, 50%, 28%) 0%,
+        hsl(270, 60%, 18%) 40%,
+        hsl(220, 40%, 8%) 100%
+      );
+  }
+
   /* Question card - purple rounded card */
   .question-card {
     @apply rounded-3xl p-6;
