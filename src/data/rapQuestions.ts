@@ -2,6 +2,18 @@ import resultJayzHardknock from '@/assets/result-jayz-hardknock.jpg';
 import resultNasRuled from '@/assets/result-nas-ruled.jpg';
 import resultYmcmb from '@/assets/result-ymcmb.jpg';
 import resultDmx from '@/assets/result-dmx.jpg';
+import resultTupac from '@/assets/result-tupac-eyez.gif';
+import resultBiggie from '@/assets/result-biggie-brooklyn.gif';
+import resultEminem from '@/assets/result-eminem-shady.gif';
+import resultSnoop from '@/assets/result-snoop-dogg.gif';
+import resultWutang from '@/assets/result-wutang.gif';
+import resultOutkast from '@/assets/result-outkast.gif';
+import resultKendrick from '@/assets/result-kendrick.gif';
+import result50cent from '@/assets/result-50cent.gif';
+import resultNasIllmatic from '@/assets/result-nas-illmatic.gif';
+import resultTribe from '@/assets/result-tribe.gif';
+import resultCardib from '@/assets/result-cardib.gif';
+import resultDrdre from '@/assets/result-drdre.gif';
 
 export interface Question {
   id: string;
@@ -90,7 +102,8 @@ export const rapQuestions: Question[] = [
     options: ["1994", "1995", "1996", "1997"],
     correctAnswer: "1996",
     resultTitle: "THUG LIFE!",
-    resultCommentary: "February 13, 1996 - Pac dropped a double album classic. All Eyez on Me went 10x platinum. The GOAT did that!"
+    resultCommentary: "February 13, 1996 - Pac dropped a double album classic. All Eyez on Me went 10x platinum. The GOAT did that!",
+    resultImageUrl: resultTupac
   },
   {
     id: "rap-4",
@@ -100,7 +113,8 @@ export const rapQuestions: Question[] = [
     options: ["Queens", "Brooklyn", "Bronx", "Harlem"],
     correctAnswer: "Brooklyn",
     resultTitle: "BROOKLYN'S FINEST!",
-    resultCommentary: "Bedford-Stuyvesant raised the greatest storyteller in hip-hop. It was all a dream, and Brooklyn made it happen!"
+    resultCommentary: "Bedford-Stuyvesant raised the greatest storyteller in hip-hop. It was all a dream, and Brooklyn made it happen!",
+    resultImageUrl: resultBiggie
   },
   {
     id: "rap-5",
@@ -110,7 +124,8 @@ export const rapQuestions: Question[] = [
     options: ["The Eminem Show", "The Slim Shady LP", "Infinite", "The Marshall Mathers LP"],
     correctAnswer: "The Slim Shady LP",
     resultTitle: "SLIM SHADY!",
-    resultCommentary: "1999 - Shady dropped on Aftermath and the rap game was NEVER the same. Will the real Slim Shady please stand up?"
+    resultCommentary: "1999 - Shady dropped on Aftermath and the rap game was NEVER the same. Will the real Slim Shady please stand up?",
+    resultImageUrl: resultEminem
   },
   {
     id: "rap-6",
@@ -150,7 +165,8 @@ export const rapQuestions: Question[] = [
     options: ["Goodie Mob", "OutKast", "Dungeon Family", "The Roots"],
     correctAnswer: "OutKast",
     resultTitle: "ATL FOREVER!",
-    resultCommentary: "Three Stacks and Big Boi changed the South! The South got something to say, and OutKast made sure the world heard it!"
+    resultCommentary: "Three Stacks and Big Boi changed the South! The South got something to say, and OutKast made sure the world heard it!",
+    resultImageUrl: resultOutkast
   },
   {
     id: "rap-10",
@@ -170,7 +186,8 @@ export const rapQuestions: Question[] = [
     options: ["Snoop Lion", "Snoop Doggy Dogg", "Big Snoop", "Tha Doggfather"],
     correctAnswer: "Snoop Doggy Dogg",
     resultTitle: "BOW WOW WOW!",
-    resultCommentary: "Snoop Doggy Dogg in the place to be! Calvin Cordozar Broadus Jr. came up with Dre and never looked back!"
+    resultCommentary: "Snoop Doggy Dogg in the place to be! Calvin Cordozar Broadus Jr. came up with Dre and never looked back!",
+    resultImageUrl: resultSnoop
   },
   {
     id: "rap-12",
@@ -180,7 +197,8 @@ export const rapQuestions: Question[] = [
     options: ["Eminem", "50 Cent", "Dr. Dre", "Ice Cube"],
     correctAnswer: "Dr. Dre",
     resultTitle: "THE DOC!",
-    resultCommentary: "Andre Young built Aftermath after leaving Death Row. Signed Em, 50, Kendrick - Dre stays finding the hits!"
+    resultCommentary: "Andre Young built Aftermath after leaving Death Row. Signed Em, 50, Kendrick - Dre stays finding the hits!",
+    resultImageUrl: resultDrdre
   },
   {
     id: "rap-13",
@@ -190,7 +208,8 @@ export const rapQuestions: Question[] = [
     options: ["Oakland", "Compton", "Long Beach", "Inglewood"],
     correctAnswer: "Compton",
     resultTitle: "COMPTON'S KING!",
-    resultCommentary: "Kendrick Lamar Duckworth put Compton back on the map! From Section.80 to Mr. Morale, he never forgot where he came from!"
+    resultCommentary: "Kendrick Lamar Duckworth put Compton back on the map! From Section.80 to Mr. Morale, he never forgot where he came from!",
+    resultImageUrl: resultKendrick
   },
   {
     id: "rap-14",
@@ -200,7 +219,8 @@ export const rapQuestions: Question[] = [
     options: ["The Massacre", "Get Rich or Die Tryin'", "Curtis", "Before I Self Destruct"],
     correctAnswer: "Get Rich or Die Tryin'",
     resultTitle: "G-UNIT!",
-    resultCommentary: "2003 - Fifty dropped and everyone was in the club! That album sold 872,000 copies in the first week. G-G-G-G-UNIT!"
+    resultCommentary: "2003 - Fifty dropped and everyone was in the club! That album sold 872,000 copies in the first week. G-G-G-G-UNIT!",
+    resultImageUrl: result50cent
   },
   {
     id: "rap-15",
@@ -210,7 +230,8 @@ export const rapQuestions: Question[] = [
     options: ["De La Soul", "A Tribe Called Quest", "The Jungle Brothers", "Black Sheep"],
     correctAnswer: "A Tribe Called Quest",
     resultTitle: "TRIBE VIBES!",
-    resultCommentary: "The Low End Theory changed hip-hop forever! Phife Dawg and Q-Tip made jazz rap a movement. RIP Phife!"
+    resultCommentary: "The Low End Theory changed hip-hop forever! Phife Dawg and Q-Tip made jazz rap a movement. RIP Phife!",
+    resultImageUrl: resultTribe
   },
   {
     id: "rap-16",
@@ -230,7 +251,8 @@ export const rapQuestions: Question[] = [
     options: ["Wu-Tang Forever", "Enter the Wu-Tang (36 Chambers)", "Iron Flag", "The W"],
     correctAnswer: "Enter the Wu-Tang (36 Chambers)",
     resultTitle: "WU-TANG!",
-    resultCommentary: "1993 - Staten Island's finest brought that raw hip-hop! C.R.E.A.M. still hits different. Wu-Tang is for the children!"
+    resultCommentary: "1993 - Staten Island's finest brought that raw hip-hop! C.R.E.A.M. still hits different. Wu-Tang is for the children!",
+    resultImageUrl: resultWutang
   },
   {
     id: "rap-18",
@@ -270,7 +292,8 @@ export const rapQuestions: Question[] = [
     options: ["Belcalis", "Destiny", "Onika", "Amala"],
     correctAnswer: "Belcalis",
     resultTitle: "OKURRR!",
-    resultCommentary: "Belcalis Marlenis Almánzar - say that five times fast! From the Bronx to the Grammys, Cardi B did that!"
+    resultCommentary: "Belcalis Marlenis Almánzar - say that five times fast! From the Bronx to the Grammys, Cardi B did that!",
+    resultImageUrl: resultCardib
   },
   {
     id: "rap-22",
@@ -310,7 +333,8 @@ export const rapQuestions: Question[] = [
     options: ["Illmatic", "It Was Written", "Stillmatic", "God's Son"],
     correctAnswer: "Illmatic",
     resultTitle: "QUEENSBRIDGE!",
-    resultCommentary: "Illmatic is the hip-hop Bible! Nas was 20 years old dropping bars that still hit today. Escobar season forever!"
+    resultCommentary: "Illmatic is the hip-hop Bible! Nas was 20 years old dropping bars that still hit today. Escobar season forever!",
+    resultImageUrl: resultNasIllmatic
   },
   {
     id: "rap-26",
