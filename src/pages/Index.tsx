@@ -121,19 +121,20 @@ function GameContent() {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Home screen is always shown when user exists or on signup */}
+      {(screen === 'home' || screen === 'signup') && !loading && (
+        <HomeScreen
+          onCategorySelect={handleCategorySelect}
+          onMenuClick={() => setMenuOpen(true)}
+        />
+      )}
+
       <AnimatePresence mode="wait">
+        {/* Signup overlay on top of home */}
         {screen === 'signup' && (
           <SignupScreen 
             key="signup"
             onComplete={() => setScreen('home')} 
-          />
-        )}
-
-        {screen === 'home' && (
-          <HomeScreen
-            key="home"
-            onCategorySelect={handleCategorySelect}
-            onMenuClick={() => setMenuOpen(true)}
           />
         )}
 
