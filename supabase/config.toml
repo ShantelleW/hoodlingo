@@ -1,1 +1,7 @@
 project_id = "rlkrwafqqgjqbkqooqye"
+
+[functions.stripe-webhook]
+verify_jwt = false
+
+[functions.validate-game-start]
+verify_jwt = false
