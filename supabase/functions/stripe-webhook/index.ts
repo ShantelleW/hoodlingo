@@ -47,10 +47,10 @@ serve(async (req) => {
     // Get raw body for signature verification
     const body = await req.text()
 
-    // Verify the webhook signature
+    // Verify the webhook signature (must use async version in Deno)
     let event: Stripe.Event
     try {
-      event = stripe.webhooks.constructEvent(body, signature, webhookSecret)
+      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Unknown error'
       console.error('Webhook signature verification failed:', message)
