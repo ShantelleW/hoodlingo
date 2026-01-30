@@ -37,12 +37,14 @@ interface UserProfile {
   games_played: number;
 }
 
-const CATEGORIES = [
-  { id: 'rap', name: 'Rap', emoji: '🎤' },
-  { id: 'streets', name: 'These Streets', emoji: '🗽' },
-  { id: 'flicks', name: 'Hood Flicks', emoji: '🎬' },
-  { id: 'stores', name: 'Corner Stores', emoji: '🏪' },
-];
+interface Category {
+  id: string;
+  name: string;
+  emoji: string;
+  description: string | null;
+  is_active: boolean;
+  question_count: number;
+}
 
 export default function Admin() {
   const navigate = useNavigate();
@@ -50,6 +52,7 @@ export default function Admin() {
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [userSearch, setUserSearch] = useState('');
   const [loading, setLoading] = useState(true);
   
@@ -63,6 +66,14 @@ export default function Admin() {
     resultTitle: '',
     resultCommentary: '',
     resultImageUrl: '',
+  });
+
+  // New category form
+  const [newCategory, setNewCategory] = useState({
+    id: '',
+    name: '',
+    emoji: '📚',
+    description: '',
   });
 
   // Check admin status
@@ -90,27 +101,38 @@ export default function Admin() {
     checkAdmin();
   }, [user]);
 
-  // Fetch submissions
+  // Fetch submissions and categories
   useEffect(() => {
     if (!isAdmin) return;
 
-    async function fetchSubmissions() {
-      const { data, error } = await supabase
+    async function fetchData() {
+      // Fetch submissions
+      const { data: submissionsData } = await supabase
         .from('question_submissions')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (data && !error) {
-        setSubmissions(data.map(s => ({
+      if (submissionsData) {
+        setSubmissions(submissionsData.map(s => ({
           ...s,
           options: Array.isArray(s.options) 
             ? (s.options as unknown as string[]) 
             : Object.values(s.options as Record<string, string>)
         })) as Submission[]);
       }
+
+      // Fetch categories
+      const { data: categoriesData } = await supabase
+        .from('categories')
+        .select('*')
+        .order('name');
+
+      if (categoriesData) {
+        setCategories(categoriesData as Category[]);
+      }
     }
 
-    fetchSubmissions();
+    fetchData();
   }, [isAdmin]);
 
   // Search users
@@ -258,9 +280,10 @@ export default function Admin() {
 
       <main className="max-w-4xl mx-auto p-4">
         <Tabs defaultValue="review" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 mb-6">
+          <TabsList className="grid w-full grid-cols-4 mb-6">
             <TabsTrigger value="review" className="font-display">📝 REVIEW</TabsTrigger>
             <TabsTrigger value="add" className="font-display">➕ ADD Q</TabsTrigger>
+            <TabsTrigger value="categories" className="font-display">📂 CATS</TabsTrigger>
             <TabsTrigger value="users" className="font-display">👑 OGs</TabsTrigger>
           </TabsList>
 
@@ -338,7 +361,7 @@ export default function Admin() {
               <div>
                 <label className="text-sm text-muted-foreground mb-2 block">Category</label>
                 <div className="flex gap-2 flex-wrap">
-                  {CATEGORIES.map(cat => (
+                  {categories.filter(c => c.is_active).map(cat => (
                     <Button
                       key={cat.id}
                       variant={newQuestion.category === cat.id ? 'default' : 'outline'}
@@ -489,6 +512,117 @@ export default function Admin() {
               </div>
             )}
           </TabsContent>
+
+          {/* Categories Management Tab */}
+          <TabsContent value="categories" className="space-y-4">
+            {/* Create New Category */}
+            <div className="bg-card rounded-xl p-4 border border-border space-y-4">
+              <h3 className="font-display text-lg text-primary">CREATE NEW CATEGORY</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">ID (lowercase, no spaces)</label>
+                  <Input
+                    value={newCategory.id}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, id: e.target.value.toLowerCase().replace(/\s/g, '-') }))}
+                    placeholder="my-category"
+                    className="bg-secondary"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Name</label>
+                  <Input
+                    value={newCategory.name}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="My Category"
+                    className="bg-secondary"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Emoji</label>
+                  <Input
+                    value={newCategory.emoji}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, emoji: e.target.value }))}
+                    placeholder="📚"
+                    className="bg-secondary"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm text-muted-foreground mb-2 block">Description</label>
+                  <Input
+                    value={newCategory.description}
+                    onChange={(e) => setNewCategory(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Questions about..."
+                    className="bg-secondary"
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={async () => {
+                  if (!newCategory.id || !newCategory.name) {
+                    toast.error('ID and Name are required');
+                    return;
+                  }
+                  try {
+                    const { error } = await supabase.from('categories').insert({
+                      id: newCategory.id,
+                      name: newCategory.name,
+                      emoji: newCategory.emoji || '📚',
+                      description: newCategory.description || null,
+                    });
+                    if (error) throw error;
+                    toast.success('Category created!');
+                    setCategories(prev => [...prev, { 
+                      ...newCategory, 
+                      description: newCategory.description || null,
+                      is_active: true, 
+                      question_count: 0 
+                    }]);
+                    setNewCategory({ id: '', name: '', emoji: '📚', description: '' });
+                  } catch (err) {
+                    console.error(err);
+                    toast.error('Failed to create category');
+                  }
+                }}
+                className="w-full font-display"
+              >
+                <Plus className="w-4 h-4 mr-2" /> CREATE CATEGORY
+              </Button>
+            </div>
+
+            {/* Existing Categories */}
+            <div className="space-y-2">
+              <h3 className="font-display text-lg text-primary">EXISTING CATEGORIES</h3>
+              {categories.map(cat => (
+                <div
+                  key={cat.id}
+                  className={`bg-card rounded-xl p-4 border ${cat.is_active ? 'border-border' : 'border-destructive/50 opacity-60'} flex items-center justify-between`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl">{cat.emoji}</span>
+                    <div>
+                      <p className="font-display">{cat.name}</p>
+                      <p className="text-xs text-muted-foreground">{cat.id} • {cat.question_count || 0} questions</p>
+                    </div>
+                  </div>
+                  <Button
+                    variant={cat.is_active ? 'outline' : 'default'}
+                    size="sm"
+                    onClick={async () => {
+                      await supabase.from('categories').update({ is_active: !cat.is_active }).eq('id', cat.id);
+                      setCategories(prev => prev.map(c => c.id === cat.id ? { ...c, is_active: !c.is_active } : c));
+                      toast.success(`Category ${!cat.is_active ? 'activated' : 'deactivated'}`);
+                    }}
+                  >
+                    {cat.is_active ? 'Deactivate' : 'Activate'}
+                  </Button>
+                </div>
+              ))}
+            </div>
+          </TabsContent>
+
+          {/* OG Management Tab */}
         </Tabs>
       </main>
     </div>
