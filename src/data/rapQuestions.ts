@@ -25,6 +25,7 @@ export interface Question {
   resultTitle: string;
   resultCommentary: string;
   resultImageUrl?: string;
+  questionImageUrl?: string;  // Image shown with question
 }
 
 export const rapQuestions: Question[] = [
