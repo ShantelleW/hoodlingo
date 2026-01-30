@@ -1,10 +1,54 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import Stripe from 'https://esm.sh/stripe@14.21.0?target=deno'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, stripe-signature',
+}
+
+// Manual Stripe signature verification for Deno compatibility
+async function verifyStripeSignature(
+  payload: string,
+  signature: string,
+  secret: string
+): Promise<boolean> {
+  const parts = signature.split(',')
+  const timestamp = parts.find(p => p.startsWith('t='))?.split('=')[1]
+  const sig = parts.find(p => p.startsWith('v1='))?.split('=')[1]
+
+  if (!timestamp || !sig) {
+    return false
+  }
+
+  // Check timestamp tolerance (5 minutes)
+  const currentTime = Math.floor(Date.now() / 1000)
+  if (Math.abs(currentTime - parseInt(timestamp)) > 300) {
+    console.error('Timestamp outside tolerance window')
+    return false
+  }
+
+  const signedPayload = `${timestamp}.${payload}`
+  const encoder = new TextEncoder()
+  
+  const key = await crypto.subtle.importKey(
+    'raw',
+    encoder.encode(secret),
+    { name: 'HMAC', hash: 'SHA-256' },
+    false,
+    ['sign']
+  )
+
+  const signatureBytes = await crypto.subtle.sign(
+    'HMAC',
+    key,
+    encoder.encode(signedPayload)
+  )
+
+  const expectedSig = Array.from(new Uint8Array(signatureBytes))
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('')
+
+  return expectedSig === sig
 }
 
 serve(async (req) => {
@@ -27,11 +71,6 @@ serve(async (req) => {
       )
     }
 
-    const stripe = new Stripe(stripeSecretKey, {
-      apiVersion: '2023-10-16',
-      httpClient: Stripe.createFetchHttpClient(),
-    })
-
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Get the signature from headers
@@ -47,27 +86,22 @@ serve(async (req) => {
     // Get raw body for signature verification
     const body = await req.text()
 
-    // Verify the webhook signature (must use async version in Deno)
-    let event: Stripe.Event
-    try {
-      event = await stripe.webhooks.constructEventAsync(body, signature, webhookSecret)
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : 'Unknown error'
-      console.error('Webhook signature verification failed:', message)
+    // Verify the webhook signature manually
+    const isValid = await verifyStripeSignature(body, signature, webhookSecret)
+    if (!isValid) {
+      console.error('Webhook signature verification failed')
       return new Response(
         JSON.stringify({ error: 'Invalid signature' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
+    const event = JSON.parse(body)
     console.log('Received Stripe event:', event.type)
-
-    // Return success for any event we don't specifically handle
-    // This allows Stripe to send test pings and other events without errors
 
     // Handle the checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
-      const session = event.data.object as Stripe.Checkout.Session
+      const session = event.data.object
 
       // Get the customer email from the session
       const customerEmail = session.customer_details?.email || session.customer_email
