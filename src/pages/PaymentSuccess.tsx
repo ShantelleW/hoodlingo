@@ -9,6 +9,8 @@ export default function PaymentSuccess() {
   const navigate = useNavigate();
   const [updating, setUpdating] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState(5);
+  const [success, setSuccess] = useState(false);
 
   useEffect(() => {
     const updatePaymentStatus = async () => {
@@ -29,6 +31,8 @@ export default function PaymentSuccess() {
         if (updateError) {
           console.error('Error updating payment status:', updateError);
           setError('Failed to update your account. Please contact support.');
+        } else {
+          setSuccess(true);
         }
       } catch (err) {
         console.error('Payment status update error:', err);
@@ -40,6 +44,24 @@ export default function PaymentSuccess() {
 
     updatePaymentStatus();
   }, []);
+
+  // Auto-redirect countdown after successful payment
+  useEffect(() => {
+    if (!success) return;
+
+    const timer = setInterval(() => {
+      setCountdown((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          navigate('/');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [success, navigate]);
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 overflow-hidden">
@@ -132,6 +154,10 @@ export default function PaymentSuccess() {
               </div>
             ) : error ? (
               <div className="text-destructive text-sm mb-4">{error}</div>
+            ) : success ? (
+              <div className="text-muted-foreground text-sm mb-4">
+                Redirecting in <span className="text-primary font-bold">{countdown}</span>...
+              </div>
             ) : null}
 
             <motion.div
@@ -144,7 +170,7 @@ export default function PaymentSuccess() {
                 className="w-full h-14 text-lg font-display bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity"
                 disabled={updating}
               >
-                LET'S GO! 🎤
+                {success ? `LET'S GO! (${countdown})` : 'LET\'S GO! 🎤'}
               </Button>
             </motion.div>
 
