@@ -42,10 +42,17 @@ function GameContent() {
   const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
   const [isLoadingChallenge, setIsLoadingChallenge] = useState(false);
 
-  // Load challenge data if we have a code
+  // Load challenge data if we have a code (from URL or sessionStorage)
   useEffect(() => {
     async function loadChallenge() {
-      if (!code) return;
+      // Check URL first, then sessionStorage for pending challenge
+      const challengeCode = code || sessionStorage.getItem('pendingChallengeCode');
+      if (!challengeCode) return;
+      
+      // If we have a code from URL, save it to sessionStorage (persists through auth)
+      if (code) {
+        sessionStorage.setItem('pendingChallengeCode', code);
+      }
       
       setIsLoadingChallenge(true);
       try {
@@ -53,11 +60,12 @@ function GameContent() {
         const { data: challenge, error } = await supabase
           .from('challenges')
           .select('*')
-          .eq('share_code', code)
+          .eq('share_code', challengeCode)
           .single();
 
         if (error || !challenge) {
           toast.error('Challenge not found');
+          sessionStorage.removeItem('pendingChallengeCode');
           navigate('/');
           return;
         }
@@ -76,6 +84,7 @@ function GameContent() {
       } catch (err) {
         console.error('Error loading challenge:', err);
         toast.error('Failed to load challenge');
+        sessionStorage.removeItem('pendingChallengeCode');
         navigate('/');
       } finally {
         setIsLoadingChallenge(false);
@@ -83,7 +92,7 @@ function GameContent() {
     }
 
     loadChallenge();
-  }, [code, navigate]);
+  }, [code, navigate, user]); // Added user dependency to re-check after auth
 
   useEffect(() => {
     if (!loading) {
@@ -101,12 +110,16 @@ function GameContent() {
   const handleAcceptChallenge = () => {
     if (!challengeData) return;
     
+    // Clear the pending challenge from storage since we're starting it
+    sessionStorage.removeItem('pendingChallengeCode');
+    
     setCurrentCategory(challengeData.category);
     game.startChallengeGame(challengeData.question_ids);
     setScreen('quiz');
   };
 
   const handleDeclineChallenge = () => {
+    sessionStorage.removeItem('pendingChallengeCode');
     setChallengeData(null);
     navigate('/');
     setScreen('home');
