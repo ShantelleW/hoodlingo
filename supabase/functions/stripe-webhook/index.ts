@@ -62,6 +62,9 @@ serve(async (req) => {
 
     console.log('Received Stripe event:', event.type)
 
+    // Return success for any event we don't specifically handle
+    // This allows Stripe to send test pings and other events without errors
+
     // Handle the checkout.session.completed event
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session
