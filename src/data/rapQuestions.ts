@@ -642,3 +642,8 @@ export const getRandomQuestions = (count: number = 10): Question[] => {
   const shuffled = [...rapQuestions].sort(() => 0.5 - Math.random());
   return shuffled.slice(0, count);
 };
+
+export const getQuestionsByIds = (ids: string[]): Question[] => {
+  const questionMap = new Map(rapQuestions.map(q => [q.id, q]));
+  return ids.map(id => questionMap.get(id)).filter((q): q is Question => q !== undefined);
+};

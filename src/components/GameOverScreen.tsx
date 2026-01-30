@@ -22,6 +22,10 @@ interface GameOverScreenProps {
   onGoHome: () => void;
   onChallenge: () => void;
   onSubmitQuestion: () => void;
+  challengeData?: {
+    challengerInitials: string | null;
+    challengerScore: number;
+  };
 }
 
 export function GameOverScreen({
@@ -31,7 +35,8 @@ export function GameOverScreen({
   onPlayAgain,
   onGoHome,
   onChallenge,
-  onSubmitQuestion
+  onSubmitQuestion,
+  challengeData
 }: GameOverScreenProps) {
   const { user, profile, updateProfile } = useAuth();
   const [initials, setInitials] = useState(profile?.initials || '');
@@ -109,6 +114,39 @@ export function GameOverScreen({
           <h1 className="font-heading text-5xl arcade-text tracking-widest">GAME OVER</h1>
           <div className="text-4xl mt-2">{score >= totalQuestions / 2 ? '🔥' : '💀'}</div>
         </motion.div>
+
+        {/* Challenge Result Comparison */}
+        {challengeData && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="arcade-border rounded-xl p-4 mb-4 bg-card/80"
+          >
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <p className="text-muted-foreground text-xs mb-1">YOU</p>
+                <p className={`font-heading text-3xl ${score > challengeData.challengerScore ? 'text-success' : score < challengeData.challengerScore ? 'text-destructive' : 'text-primary'}`}>
+                  {score}
+                </p>
+              </div>
+              <div className="text-2xl px-4">
+                {score > challengeData.challengerScore ? '🏆' : score < challengeData.challengerScore ? '😤' : '🤝'}
+              </div>
+              <div className="text-center flex-1">
+                <p className="text-muted-foreground text-xs mb-1">{challengeData.challengerInitials || '???'}</p>
+                <p className="font-heading text-3xl text-accent">{challengeData.challengerScore}</p>
+              </div>
+            </div>
+            <p className="text-center mt-3 font-display text-sm">
+              {score > challengeData.challengerScore 
+                ? '🔥 YOU WON THE CHALLENGE!' 
+                : score < challengeData.challengerScore 
+                  ? `${challengeData.challengerInitials || 'They'} got you this time!`
+                  : "IT'S A TIE!"}
+            </p>
+          </motion.div>
+        )}
 
         {/* Score Display */}
         <motion.div
