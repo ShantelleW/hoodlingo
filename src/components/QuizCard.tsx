@@ -60,6 +60,17 @@ export function QuizCard({
           >
             {/* Purple Question Card */}
             <div className="question-card mb-6">
+              {/* Question Image */}
+              {question.questionImageUrl && (
+                <div className="mb-4 -mt-2">
+                  <img 
+                    src={question.questionImageUrl} 
+                    alt="Question visual"
+                    className="w-full h-40 object-cover rounded-xl"
+                  />
+                </div>
+              )}
+
               {/* Question Text */}
               <h2 className="text-white text-xl font-bold text-center mb-4 leading-relaxed">
                 {question.question}
