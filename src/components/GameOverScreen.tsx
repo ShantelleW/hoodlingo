@@ -288,6 +288,27 @@ export function GameOverScreen({
             </Button>
           )}
           
+          {/* Submit Question CTA - Prominent OG incentive */}
+          <motion.div
+            initial={{ scale: 0.95 }}
+            animate={{ scale: [0.95, 1.02, 1] }}
+            transition={{ delay: 1, duration: 0.5 }}
+            className="bg-gradient-to-r from-primary/20 to-accent/20 rounded-xl p-4 border border-primary/30"
+          >
+            <p className="text-center text-sm text-muted-foreground mb-2">
+              🧠 Got a question the culture should know?
+            </p>
+            <Button
+              onClick={onSubmitQuestion}
+              className="w-full font-display text-lg py-5 bg-gradient-to-r from-primary to-accent hover:opacity-90"
+            >
+              ➕ SUBMIT YOUR QUESTION
+            </Button>
+            <p className="text-center text-xs text-primary mt-2">
+              Best submissions get OG status! 👑
+            </p>
+          </motion.div>
+
           <div className="grid grid-cols-2 gap-3">
             <Button
               onClick={onChallenge}
@@ -297,19 +318,12 @@ export function GameOverScreen({
               📱 CHALLENGE
             </Button>
             <Button
-              onClick={onSubmitQuestion}
-              variant="outline"
-              className="font-display py-5 border-accent text-accent hover:bg-accent hover:text-accent-foreground"
+              onClick={onPlayAgain}
+              className="font-display py-5 bg-primary text-primary-foreground pulse-glow"
             >
-              ➕ SUBMIT Q
+              🔁 AGAIN
             </Button>
           </div>
-          <Button
-            onClick={onPlayAgain}
-            className="w-full font-display text-lg py-6 bg-primary text-primary-foreground pulse-glow"
-          >
-            PLAY AGAIN
-          </Button>
           <Button
             onClick={onGoHome}
             variant="ghost"
