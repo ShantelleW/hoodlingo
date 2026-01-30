@@ -14,6 +14,36 @@ export type Database = {
   }
   public: {
     Tables: {
+      categories: {
+        Row: {
+          created_at: string
+          description: string | null
+          emoji: string
+          id: string
+          is_active: boolean | null
+          name: string
+          question_count: number | null
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id: string
+          is_active?: boolean | null
+          name: string
+          question_count?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          emoji?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          question_count?: number | null
+        }
+        Relationships: []
+      }
       category_masters: {
         Row: {
           approved_questions_count: number | null
