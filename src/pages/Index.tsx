@@ -329,6 +329,7 @@ function GameContent() {
               setMenuOpen(false);
               // Could navigate to dedicated leaderboard page
             }}
+            onSubmitQuestion={() => setShowSubmitQuestion(true)}
           />
         )}
       </AnimatePresence>

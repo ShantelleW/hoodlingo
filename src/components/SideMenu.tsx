@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { X, LogOut, Crown, Trophy, HelpCircle, Swords, ChevronRight, Clock } from 'lucide-react';
+import { X, LogOut, Crown, Trophy, Lightbulb, Swords, ChevronRight, Clock, Settings } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { avatars, getAvatarById } from '@/data/avatars';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,19 +23,32 @@ interface SideMenuProps {
   isOpen: boolean;
   onClose: () => void;
   onViewLeaderboard: () => void;
+  onSubmitQuestion?: () => void;
 }
 
-export function SideMenu({ isOpen, onClose, onViewLeaderboard }: SideMenuProps) {
+export function SideMenu({ isOpen, onClose, onViewLeaderboard, onSubmitQuestion }: SideMenuProps) {
+  const navigate = useNavigate();
   const { user, profile, signOut } = useAuth();
   const avatar = getAvatarById(profile?.avatar_id || 'avatar1') || avatars[0];
   const [challengeHistory, setChallengeHistory] = useState<ChallengeHistoryItem[]>([]);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (isOpen && user) {
       fetchChallengeHistory();
+      checkAdminStatus();
     }
   }, [isOpen, user]);
+
+  const checkAdminStatus = async () => {
+    if (!user) return;
+    const { data } = await supabase.rpc('has_role', {
+      _user_id: user.id,
+      _role: 'admin'
+    });
+    setIsAdmin(data || false);
+  };
 
   const fetchChallengeHistory = async () => {
     if (!user) return;
@@ -195,12 +209,29 @@ export function SideMenu({ isOpen, onClose, onViewLeaderboard }: SideMenuProps) 
 
               <Button
                 variant="ghost"
+                onClick={() => {
+                  onClose();
+                  onSubmitQuestion?.();
+                }}
                 className="w-full justify-start font-display text-lg"
-                disabled
               >
-                <HelpCircle className="mr-3 h-5 w-5" />
-                HOW TO PLAY
+                <Lightbulb className="mr-3 h-5 w-5 text-accent" />
+                SUBMIT A HOOD FACT
               </Button>
+
+              {isAdmin && (
+                <Button
+                  variant="ghost"
+                  onClick={() => {
+                    onClose();
+                    navigate('/admin');
+                  }}
+                  className="w-full justify-start font-display text-lg"
+                >
+                  <Settings className="mr-3 h-5 w-5 text-primary" />
+                  ADMIN DASHBOARD
+                </Button>
+              )}
 
               {profile?.has_paid && (
                 <div className="p-4 bg-success/10 rounded-xl mt-4">
