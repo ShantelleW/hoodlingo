@@ -1,84 +1,259 @@
 
 
-# HOODLINGO - Revenue-Generating Quiz App
+# Implementation Plan: Enhanced Quiz UI, New Categories, Payment Flow & Admin Console
 
-## Overview
-A fast-paced, culturally authentic trivia game celebrating hip-hop culture with competitive elements, social sharing, and a contributor community (OGs).
+## Summary
 
----
-
-## Core Screens & Features
-
-### 1. Quick Signup
-- Phone number or email registration
-- Simple, quick flow before first game
-- User profile with customizable rapper-style avatar
-
-### 2. Home Screen
-- Urban housing project background aesthetic
-- HOODLINGO branding with brain logo
-- "IF YOU AIN'T NEVER WORN TIMBS, TURN BACK!" tagline
-- Four category buttons: **Rap**, **These Streets**, **Hood Flicks**, **Corner Stores**
-- Menu access and user avatar display
-
-### 3. Fast & Intense Quiz Gameplay
-- White question cards on blurred urban backgrounds
-- Each question includes witty cultural hints/commentary
-- 4 answer options - **first tap is final answer** (auto-advance)
-- Immediate feedback with fun celebratory results ("Jay-Z Duh! JIGGA took off with this one!")
-- Results include related images and personal-style commentary
-- **2 wrong answers = Game Over**
-
-### 4. Arcade-Style Leaderboard
-- Classic scrolling arcade aesthetic when game ends
-- Players enter 3-letter initials
-- Choose from cartoon 3D rapper-style avatars (inspired by famous rapper looks)
-- High scores displayed with retro animation
-
-### 5. Challenge System
-- **SMS Challenge**: Send text with link to play your exact questions
-- **Share Link**: Copy shareable link for any platform
-- Track who you've challenged and their scores
-
-### 6. Question Submission & OG Program
-- Submit new questions after game ends
-- **OG Invitation**: Users who submit get invited to become OGs
-- OGs receive weekly email to vote on submitted questions
-- OGs whose questions get approved become **Category Masters**
-- Category Masters featured as curators when their category is selected
-
-### 7. $1 Paywall (Stripe)
-- After 2 free games, paywall appears
-- $1 one-time payment to unlock unlimited play
-- Stripe card payment integration
+This plan addresses five major feature requests:
+1. Add images to question cards (matching reference screenshots)
+2. Create 25 questions each for three new categories
+3. Fix payment success redirect to unlock premium features
+4. Verify/improve question submission modal
+5. Build admin console for managing questions and OGs
 
 ---
 
-## Content: 50+ Rap Category Questions
-Questions with the same fun format you showed - witty hints, cultural commentary, and celebratory results. Topics covering:
-- Classic hip-hop trivia (artists, albums, lyrics)
-- Real names and hometowns
-- Label affiliations and crews
-- Iconic moments and beefs
-- Music video and album art knowledge
+## Part 1: Question Card Images (Match Reference Design)
+
+### Changes Required
+
+**1. Update Question Interface** (`src/data/rapQuestions.ts`)
+```typescript
+export interface Question {
+  id: string;
+  category: string;
+  question: string;
+  hint: string;
+  options: string[];
+  correctAnswer: string;
+  resultTitle: string;
+  resultCommentary: string;
+  resultImageUrl?: string;
+  questionImageUrl?: string;  // NEW: Image shown with question
+}
+```
+
+**2. Update QuizCard Component** (`src/components/QuizCard.tsx`)
+- Add image display area above question text
+- Show `questionImageUrl` if present
+- Match reference design: rounded corners, proper sizing
+
+**3. Update Existing Questions**
+- Add `questionImageUrl` to existing rap questions where applicable
+- Use relevant GIFs/images for visual questions
 
 ---
 
-## Technical Requirements
+## Part 2: New Category Questions (75 Total)
 
-### Backend (Lovable Cloud)
-- User authentication (email/phone)
-- Database for users, scores, questions, OG status
-- Leaderboard storage
-- Challenge tracking
-- Question submission queue
+### These Streets (25 Questions)
+Topics covering:
+- NYC borough geography and landmarks
+- Street slang and terminology
+- Famous NYC corners and neighborhoods
+- Hood legends and street code
+- Project housing facts
+- Graffiti and street art culture
 
-### Payments
-- Stripe integration for $1 paywall
-- Track payment status per user
+### Hood Flicks (25 Questions)
+Topics covering:
+- Classic hood movies (Menace II Society, Boyz n the Hood, Paid in Full, etc.)
+- Movie quotes and scenes
+- Actor trivia
+- Director knowledge
+- Soundtrack questions
+- Behind-the-scenes facts
 
-### Mobile-First Design
-- Optimized for phone screens
-- Touch-friendly large buttons
-- Fast, snappy animations
+### Corner Stores (25 Questions)
+Topics covering:
+- Bodega culture and products
+- Chopped cheese and other hood foods
+- Candy and snack trivia
+- Corner store slang
+- Lottery and scratch-off culture
+- "Ock" terminology
+
+### Implementation
+- Create three new arrays: `streetsQuestions`, `flicksQuestions`, `storesQuestions`
+- Update `getRandomQuestions` function to filter by category
+- Add result images/GIFs for celebratory feedback
+
+---
+
+## Part 3: Payment Success Flow Fix
+
+### Current Issue
+After payment, user lands on success page but must manually click "LET'S GO" to return. The `has_paid` status is updated, but there's no automatic redirect to an "unlocked" state.
+
+### Solution
+
+**1. Auto-redirect after database update** (`src/pages/PaymentSuccess.tsx`)
+```typescript
+// After successful update:
+setTimeout(() => {
+  navigate('/');
+}, 3000); // 3-second delay to show celebration
+```
+
+**2. Visual confirmation of premium status** (`src/components/HomeScreen.tsx`)
+- Show "UNLIMITED" badge for paid users
+- Remove any paywall indicators
+- Display premium crown icon next to avatar
+
+**3. Ensure profile refresh on return to home**
+- Call `refetchProfile` after navigation
+- Verify `has_paid: true` is reflected in UI
+
+---
+
+## Part 4: Question Submission Modal Verification
+
+### Current State
+The `SubmitQuestionModal` component exists and inserts into `question_submissions` table.
+
+### Improvements Needed
+
+**1. Better UX feedback**
+- Show success animation after submission
+- Display "Your question will be reviewed by OGs" message
+- Add estimated approval timeframe
+
+**2. Category selection**
+- Add dropdown to select category (Rap, Streets, Flicks, Stores)
+- Currently hardcoded to the played category
+
+**3. Optional image upload**
+- Allow users to suggest a result image URL
+- Add field for `questionImageUrl` suggestion
+
+---
+
+## Part 5: Admin Console
+
+### New Route: `/admin`
+
+**Access Control**
+- Create `user_roles` table with admin role
+- Only users with admin role can access
+- Use RLS and server-side validation
+
+### Database Changes
+
+```sql
+-- Create role enum
+CREATE TYPE public.app_role AS ENUM ('admin', 'moderator', 'user');
+
+-- Create user_roles table
+CREATE TABLE public.user_roles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+  role app_role NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  UNIQUE (user_id, role)
+);
+
+-- Enable RLS
+ALTER TABLE public.user_roles ENABLE ROW LEVEL SECURITY;
+
+-- Security definer function
+CREATE OR REPLACE FUNCTION public.has_role(_user_id UUID, _role app_role)
+RETURNS BOOLEAN
+LANGUAGE sql STABLE SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM public.user_roles
+    WHERE user_id = _user_id AND role = _role
+  )
+$$;
+
+-- RLS policies
+CREATE POLICY "Users can view their own roles"
+ON public.user_roles FOR SELECT
+USING (auth.uid() = user_id);
+
+CREATE POLICY "Admins can manage roles"
+ON public.user_roles FOR ALL
+USING (public.has_role(auth.uid(), 'admin'));
+```
+
+### Admin Dashboard Features
+
+**1. Question Review Panel**
+- List all pending `question_submissions` (status = 'pending')
+- Display question, options, correct answer, hint
+- Show submitter info and OG vote counts
+- Approve/Reject buttons
+- On approve: copy to `questions` table with `is_approved = true`
+
+**2. OG Vote Summary**
+- Show vote counts per submission
+- Display which OGs voted and how
+- Threshold indicator (e.g., "5 votes needed")
+
+**3. Category Masters Management**
+- List current category masters from `category_masters` table
+- See approved question counts per user
+- Manually assign/remove category master status
+- Featured curator display toggle
+
+**4. User Management**
+- Search users by email or initials
+- View user stats (games played, submissions, OG status)
+- Grant/revoke OG status
+- View payment status
+
+### New Components
+
+```text
+src/pages/Admin.tsx           - Main admin dashboard
+src/components/admin/
+  ├── QuestionReviewCard.tsx  - Individual submission review
+  ├── OGVoteSummary.tsx       - Vote visualization
+  ├── CategoryMastersList.tsx - Masters management
+  └── UserSearch.tsx          - User lookup/management
+```
+
+### Routing
+
+```typescript
+// src/App.tsx
+<Route path="/admin" element={<AdminProtectedRoute><Admin /></AdminProtectedRoute>} />
+```
+
+---
+
+## File Changes Summary
+
+| File | Action |
+|------|--------|
+| `src/data/rapQuestions.ts` | Add questionImageUrl field, add 75 new questions |
+| `src/components/QuizCard.tsx` | Add image display in question card |
+| `src/pages/PaymentSuccess.tsx` | Add auto-redirect, improve timing |
+| `src/components/HomeScreen.tsx` | Add premium badge for paid users |
+| `src/components/SubmitQuestionModal.tsx` | Add category selector, image field |
+| `src/pages/Admin.tsx` | NEW: Admin dashboard |
+| `src/components/admin/*` | NEW: Admin sub-components |
+| `src/App.tsx` | Add /admin route |
+| `src/hooks/useAdmin.tsx` | NEW: Admin role check hook |
+| Database migration | Create user_roles table, has_role function |
+
+---
+
+## Technical Considerations
+
+### Security
+- Admin access validated via database function, not client-side
+- RLS policies prevent unauthorized access to admin data
+- Cannot bypass role check with localStorage manipulation
+
+### Performance
+- Question images lazy-loaded
+- Admin queries paginated (50 items per page)
+- OG votes aggregated server-side
+
+### Mobile Experience
+- Admin console responsive but optimized for desktop
+- Question images scale appropriately on mobile
+- Touch-friendly approve/reject buttons
 
