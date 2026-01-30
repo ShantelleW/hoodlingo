@@ -54,8 +54,16 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
+      animate={{ 
+        opacity: 1,
+        x: kicking ? [0, -15, 12, -8, 5, -3, 0] : 0,
+        y: kicking ? [0, -8, 6, -4, 2, 0] : 0,
+      }}
       exit={{ opacity: 0 }}
+      transition={kicking ? { 
+        x: { duration: 0.5, ease: 'easeOut', delay: 0.15 },
+        y: { duration: 0.5, ease: 'easeOut', delay: 0.15 }
+      } : {}}
       className="fixed inset-0 z-50"
       style={{ perspective: '1200px' }}
     >
@@ -65,11 +73,12 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
       {/* Door with bars */}
       <motion.div
         animate={kicking ? { 
-          rotateY: -120,
-          x: -100,
-          opacity: 0
+          rotateY: -110,
+          x: '-40%',
+          opacity: 0,
+          scale: 1.1,
         } : {}}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
+        transition={{ duration: 0.35, ease: [0.25, 0.46, 0.45, 0.94], delay: 0.2 }}
         className="absolute inset-0 origin-left"
         style={{ transformStyle: 'preserve-3d' }}
       >
@@ -77,22 +86,48 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
           className="absolute inset-0 bg-cover bg-center"
           style={{ backgroundImage: `url(${projectDoor})` }}
         />
+        
+        {/* Impact flash on door */}
+        <AnimatePresence>
+          {kicking && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0, 0.8, 0] }}
+              transition={{ duration: 0.3 }}
+              className="absolute inset-0 bg-white"
+            />
+          )}
+        </AnimatePresence>
       </motion.div>
 
-      {/* Boot kick animation - shows when kicking */}
+      {/* POV Boot kick animation - comes from viewer's perspective */}
       <AnimatePresence>
         {kicking && (
           <motion.div
-            initial={{ y: '100%', x: '-20%', rotate: -30, scale: 1.5 }}
-            animate={{ y: '10%', x: '0%', rotate: 0, scale: 2 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeOut' }}
-            className="absolute bottom-0 left-0 right-0 z-30 pointer-events-none"
+            initial={{ 
+              y: '120%', 
+              scale: 0.5,
+              rotate: -45,
+            }}
+            animate={{ 
+              y: ['120%', '15%', '25%'],
+              scale: [0.5, 2.5, 2.2],
+              rotate: [-45, 15, 5],
+            }}
+            exit={{ opacity: 0, y: '100%' }}
+            transition={{ 
+              duration: 0.4, 
+              ease: [0.22, 1, 0.36, 1],
+              times: [0, 0.6, 1]
+            }}
+            className="absolute bottom-0 left-1/2 -translate-x-1/2 z-30 pointer-events-none"
+            style={{ transformOrigin: 'bottom center' }}
           >
             <img 
               src={timbBoot} 
               alt="Timb kick" 
-              className="w-full max-w-lg mx-auto"
+              className="w-[80vw] max-w-2xl drop-shadow-2xl"
+              style={{ filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.8))' }}
             />
           </motion.div>
         )}
@@ -102,15 +137,19 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
       <AnimatePresence>
         {kicking && (
           <motion.div
-            initial={{ scale: 0, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ delay: 0.2, type: 'spring', damping: 10 }}
+            initial={{ scale: 0, opacity: 0, rotate: -10 }}
+            animate={{ scale: 1, opacity: 1, rotate: 0 }}
+            transition={{ delay: 0.3, type: 'spring', damping: 8, stiffness: 200 }}
             className="absolute inset-0 flex items-center justify-center z-40 pointer-events-none"
           >
             <div className="text-center">
-              <p className="font-display text-5xl text-primary drop-shadow-lg">
+              <motion.p 
+                animate={{ scale: [1, 1.05, 1] }}
+                transition={{ repeat: 2, duration: 0.15 }}
+                className="font-display text-5xl md:text-6xl text-primary drop-shadow-[0_4px_20px_rgba(0,0,0,0.8)]"
+              >
                 KICK IN THE DOOR! 🚪🦵
-              </p>
+              </motion.p>
             </div>
           </motion.div>
         )}
