@@ -203,6 +203,30 @@ function GameContent() {
     }
   };
 
+  const handleRematch = async () => {
+    if (!user || !challengeData) return;
+
+    try {
+      // Create rematch with same questions
+      const shareCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+      await supabase.from('challenges').insert({
+        challenger_id: user.id,
+        question_ids: challengeData.question_ids,
+        category: challengeData.category,
+        challenger_score: game.score,
+        share_code: shareCode
+      });
+
+      setChallengeShareCode(shareCode);
+      setShowChallenge(true);
+      toast.success('🔄 Rematch created! Send it back!');
+    } catch (error) {
+      console.error('Error creating rematch:', error);
+      toast.error('Failed to create rematch');
+    }
+  };
+
   if (loading || isLoadingChallenge) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -286,6 +310,7 @@ function GameContent() {
             onGoHome={handleGoHome}
             onChallenge={handleChallenge}
             onSubmitQuestion={() => setShowSubmitQuestion(true)}
+            onRematch={challengeData ? handleRematch : undefined}
             challengeData={challengeData ? {
               challengerInitials: challengeData.challengerInitials,
               challengerScore: challengeData.challenger_score

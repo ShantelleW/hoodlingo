@@ -22,6 +22,7 @@ interface GameOverScreenProps {
   onGoHome: () => void;
   onChallenge: () => void;
   onSubmitQuestion: () => void;
+  onRematch?: () => void;
   challengeData?: {
     challengerInitials: string | null;
     challengerScore: number;
@@ -36,6 +37,7 @@ export function GameOverScreen({
   onGoHome,
   onChallenge,
   onSubmitQuestion,
+  onRematch,
   challengeData
 }: GameOverScreenProps) {
   const { user, profile, updateProfile } = useAuth();
@@ -276,6 +278,16 @@ export function GameOverScreen({
           transition={{ delay: 0.7 }}
           className="w-full max-w-sm mt-6 space-y-3"
         >
+          {/* Rematch button - only show when this was a challenge */}
+          {challengeData && onRematch && (
+            <Button
+              onClick={onRematch}
+              className="w-full font-display text-lg py-6 bg-accent text-accent-foreground"
+            >
+              🔄 REMATCH {challengeData.challengerInitials || 'THEM'}!
+            </Button>
+          )}
+          
           <div className="grid grid-cols-2 gap-3">
             <Button
               onClick={onChallenge}
