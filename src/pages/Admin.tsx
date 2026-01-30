@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
-import { ArrowLeft, Check, X, Plus, Crown, Search, Trash2 } from 'lucide-react';
+import { ArrowLeft, Check, X, Plus, Crown, Search, Trash2, Upload, FileJson, FileSpreadsheet } from 'lucide-react';
 
 interface Submission {
   id: string;
@@ -75,6 +75,19 @@ export default function Admin() {
     emoji: '📚',
     description: '',
   });
+
+  // Bulk import state
+  const [importedQuestions, setImportedQuestions] = useState<Array<{
+    category: string;
+    question: string;
+    hint: string;
+    options: string[];
+    correct_answer: string;
+    result_title: string;
+    result_commentary: string;
+    result_image_url: string;
+  }>>([]);
+  const [isImporting, setIsImporting] = useState(false);
 
   // Check admin status
   useEffect(() => {
@@ -280,9 +293,10 @@ export default function Admin() {
 
       <main className="max-w-4xl mx-auto p-4">
         <Tabs defaultValue="review" className="w-full">
-          <TabsList className="grid w-full grid-cols-4 mb-6">
-            <TabsTrigger value="review" className="font-display">📝 REVIEW</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-5 mb-6">
+              <TabsTrigger value="review" className="font-display">📝 REVIEW</TabsTrigger>
             <TabsTrigger value="add" className="font-display">➕ ADD Q</TabsTrigger>
+            <TabsTrigger value="import" className="font-display">📥 IMPORT</TabsTrigger>
             <TabsTrigger value="categories" className="font-display">📂 CATS</TabsTrigger>
             <TabsTrigger value="users" className="font-display">👑 OGs</TabsTrigger>
           </TabsList>
@@ -462,6 +476,220 @@ export default function Admin() {
                 <Plus className="w-5 h-5 mr-2" /> ADD TO GAME
               </Button>
             </div>
+          </TabsContent>
+
+          {/* Bulk Import Tab */}
+          <TabsContent value="import" className="space-y-4">
+            <div className="bg-card rounded-xl p-4 border border-border space-y-4">
+              <h3 className="font-display text-lg text-primary">BULK QUESTION IMPORT</h3>
+              <p className="text-sm text-muted-foreground">
+                Upload a CSV or JSON file with questions. Required fields: category, question, options (array), correct_answer.
+                Optional: hint, result_title, result_commentary, result_image_url.
+              </p>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted rounded-xl cursor-pointer hover:border-primary transition-colors">
+                  <FileSpreadsheet className="w-8 h-8 mb-2 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Upload CSV</span>
+                  <input
+                    type="file"
+                    accept=".csv"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        const text = event.target?.result as string;
+                        const lines = text.split('\n').filter(line => line.trim());
+                        const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
+                        
+                        const questions = lines.slice(1).map(line => {
+                          // Parse CSV with quoted values
+                          const values: string[] = [];
+                          let current = '';
+                          let inQuotes = false;
+                          
+                          for (let i = 0; i < line.length; i++) {
+                            const char = line[i];
+                            if (char === '"') {
+                              inQuotes = !inQuotes;
+                            } else if (char === ',' && !inQuotes) {
+                              values.push(current.trim());
+                              current = '';
+                            } else {
+                              current += char;
+                            }
+                          }
+                          values.push(current.trim());
+                          
+                          const obj: Record<string, string> = {};
+                          headers.forEach((h, i) => {
+                            obj[h] = values[i] || '';
+                          });
+                          
+                          // Parse options - expect format: "option1|option2|option3|option4"
+                          const optionsStr = obj.options || '';
+                          const options = optionsStr.includes('|') 
+                            ? optionsStr.split('|').map(o => o.trim())
+                            : optionsStr.includes(';')
+                              ? optionsStr.split(';').map(o => o.trim())
+                              : [optionsStr];
+                          
+                          return {
+                            category: obj.category || 'rap',
+                            question: obj.question || '',
+                            hint: obj.hint || '',
+                            options: options.length >= 4 ? options.slice(0, 4) : [...options, '', '', '', ''].slice(0, 4),
+                            correct_answer: obj.correct_answer || options[0] || '',
+                            result_title: obj.result_title || 'NICE!',
+                            result_commentary: obj.result_commentary || 'You know your stuff!',
+                            result_image_url: obj.result_image_url || '',
+                          };
+                        }).filter(q => q.question);
+                        
+                        setImportedQuestions(questions);
+                        toast.success(`Parsed ${questions.length} questions from CSV`);
+                      };
+                      reader.readAsText(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+                
+                <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-muted rounded-xl cursor-pointer hover:border-primary transition-colors">
+                  <FileJson className="w-8 h-8 mb-2 text-muted-foreground" />
+                  <span className="text-sm text-muted-foreground">Upload JSON</span>
+                  <input
+                    type="file"
+                    accept=".json"
+                    className="hidden"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      
+                      const reader = new FileReader();
+                      reader.onload = (event) => {
+                        try {
+                          const data = JSON.parse(event.target?.result as string);
+                          const questionsArray = Array.isArray(data) ? data : data.questions || [];
+                          
+                          const questions = questionsArray.map((q: Record<string, unknown>) => ({
+                            category: (q.category as string) || 'rap',
+                            question: (q.question as string) || '',
+                            hint: (q.hint as string) || '',
+                            options: Array.isArray(q.options) && q.options.length >= 4 
+                              ? (q.options as string[]).slice(0, 4) 
+                              : ['', '', '', ''],
+                            correct_answer: (q.correct_answer as string) || (Array.isArray(q.options) ? (q.options[0] as string) : ''),
+                            result_title: (q.result_title as string) || 'NICE!',
+                            result_commentary: (q.result_commentary as string) || 'You know your stuff!',
+                            result_image_url: (q.result_image_url as string) || '',
+                          })).filter((q: { question: string }) => q.question);
+                          
+                          setImportedQuestions(questions);
+                          toast.success(`Parsed ${questions.length} questions from JSON`);
+                        } catch (err) {
+                          console.error(err);
+                          toast.error('Invalid JSON file');
+                        }
+                      };
+                      reader.readAsText(file);
+                      e.target.value = '';
+                    }}
+                  />
+                </label>
+              </div>
+              
+              <div className="text-xs text-muted-foreground bg-secondary p-3 rounded-lg">
+                <p className="font-semibold mb-1">CSV Format:</p>
+                <code>category,question,options,correct_answer,hint,result_title,result_commentary</code>
+                <p className="mt-1">Options separated by | or ; (e.g., "Option A|Option B|Option C|Option D")</p>
+                <p className="font-semibold mb-1 mt-3">JSON Format:</p>
+                <code>{`[{"category":"rap","question":"...","options":["A","B","C","D"],"correct_answer":"A"}]`}</code>
+              </div>
+            </div>
+            
+            {importedQuestions.length > 0 && (
+              <div className="bg-card rounded-xl p-4 border border-border space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-display text-lg text-primary">
+                    PREVIEW ({importedQuestions.length} questions)
+                  </h3>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => setImportedQuestions([])}
+                    >
+                      Clear
+                    </Button>
+                    <Button
+                      disabled={isImporting}
+                      onClick={async () => {
+                        setIsImporting(true);
+                        try {
+                          const questionsToInsert = importedQuestions.map(q => ({
+                            category: q.category,
+                            question: q.question,
+                            hint: q.hint || null,
+                            options: q.options,
+                            correct_answer: q.correct_answer,
+                            result_title: q.result_title || 'NICE!',
+                            result_commentary: q.result_commentary || 'You know your stuff!',
+                            result_image_url: q.result_image_url || null,
+                            is_approved: true,
+                          }));
+                          
+                          const { error } = await supabase.from('questions').insert(questionsToInsert);
+                          
+                          if (error) throw error;
+                          
+                          toast.success(`Successfully imported ${importedQuestions.length} questions!`);
+                          setImportedQuestions([]);
+                        } catch (err) {
+                          console.error(err);
+                          toast.error('Failed to import questions');
+                        } finally {
+                          setIsImporting(false);
+                        }
+                      }}
+                      className="bg-success hover:bg-success/90"
+                    >
+                      <Upload className="w-4 h-4 mr-2" />
+                      {isImporting ? 'Importing...' : 'Import All'}
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="max-h-96 overflow-y-auto space-y-2">
+                  {importedQuestions.map((q, idx) => (
+                    <div key={idx} className="bg-secondary rounded-lg p-3 text-sm">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex-1">
+                          <Badge className="mb-1">{q.category}</Badge>
+                          <p className="font-medium">{q.question}</p>
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Options: {q.options.join(' | ')}
+                          </p>
+                          <p className="text-xs text-success mt-1">
+                            ✓ {q.correct_answer}
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-6 w-6"
+                          onClick={() => setImportedQuestions(prev => prev.filter((_, i) => i !== idx))}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* OG Management Tab */}
