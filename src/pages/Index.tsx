@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { AnimatePresence } from 'framer-motion';
 import { AuthProvider, useAuth } from '@/hooks/useAuth';
 import { useGame } from '@/hooks/useGame';
@@ -10,14 +11,27 @@ import { GameOverScreen } from '@/components/GameOverScreen';
 import { SideMenu } from '@/components/SideMenu';
 import { SubmitQuestionModal } from '@/components/SubmitQuestionModal';
 import { ChallengeModal } from '@/components/ChallengeModal';
+import { ChallengeIntroScreen } from '@/components/ChallengeIntroScreen';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-type Screen = 'signup' | 'home' | 'quiz' | 'result' | 'gameover';
+type Screen = 'signup' | 'home' | 'quiz' | 'result' | 'gameover' | 'challenge-intro';
+
+interface ChallengeData {
+  id: string;
+  challenger_id: string;
+  question_ids: string[];
+  category: string;
+  challenger_score: number;
+  created_at: string;
+  challengerInitials: string | null;
+}
 
 function GameContent() {
   const { user, profile, loading, incrementGamesPlayed } = useAuth();
   const game = useGame();
+  const { code } = useParams<{ code: string }>();
+  const navigate = useNavigate();
   
   const [screen, setScreen] = useState<Screen>('signup');
   const [currentCategory, setCurrentCategory] = useState('rap');
@@ -25,16 +39,78 @@ function GameContent() {
   const [showSubmitQuestion, setShowSubmitQuestion] = useState(false);
   const [showChallenge, setShowChallenge] = useState(false);
   const [challengeShareCode, setChallengeShareCode] = useState('');
+  const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
+  const [isLoadingChallenge, setIsLoadingChallenge] = useState(false);
+
+  // Load challenge data if we have a code
+  useEffect(() => {
+    async function loadChallenge() {
+      if (!code) return;
+      
+      setIsLoadingChallenge(true);
+      try {
+        // Fetch challenge with challenger profile
+        const { data: challenge, error } = await supabase
+          .from('challenges')
+          .select('*')
+          .eq('share_code', code)
+          .single();
+
+        if (error || !challenge) {
+          toast.error('Challenge not found');
+          navigate('/');
+          return;
+        }
+
+        // Fetch challenger's profile for initials
+        const { data: challengerProfile } = await supabase
+          .from('profiles')
+          .select('initials')
+          .eq('user_id', challenge.challenger_id)
+          .single();
+
+        setChallengeData({
+          ...challenge,
+          challengerInitials: challengerProfile?.initials || null
+        });
+      } catch (err) {
+        console.error('Error loading challenge:', err);
+        toast.error('Failed to load challenge');
+        navigate('/');
+      } finally {
+        setIsLoadingChallenge(false);
+      }
+    }
+
+    loadChallenge();
+  }, [code, navigate]);
 
   useEffect(() => {
     if (!loading) {
-      if (user) {
+      if (challengeData && user) {
+        // Show challenge intro if we have challenge data
+        setScreen('challenge-intro');
+      } else if (user) {
         setScreen('home');
       } else {
         setScreen('signup');
       }
     }
-  }, [user, loading]);
+  }, [user, loading, challengeData]);
+
+  const handleAcceptChallenge = () => {
+    if (!challengeData) return;
+    
+    setCurrentCategory(challengeData.category);
+    game.startChallengeGame(challengeData.question_ids);
+    setScreen('quiz');
+  };
+
+  const handleDeclineChallenge = () => {
+    setChallengeData(null);
+    navigate('/');
+    setScreen('home');
+  };
 
   const handleCategorySelect = async (category: string) => {
     // Check paywall - after 2 free games
@@ -61,6 +137,20 @@ function GameContent() {
     if (game.isGameOver) {
       // Increment games played count
       await incrementGamesPlayed();
+      
+      // If this was a challenge, save the response
+      if (challengeData && user) {
+        try {
+          await supabase.from('challenge_responses').insert({
+            challenge_id: challengeData.id,
+            responder_id: user.id,
+            score: game.score
+          });
+        } catch (err) {
+          console.error('Error saving challenge response:', err);
+        }
+      }
+      
       setScreen('gameover');
     } else {
       game.nextQuestion();
@@ -76,12 +166,16 @@ function GameContent() {
       return;
     }
     
+    // Clear challenge data when playing again normally
+    setChallengeData(null);
     game.startGame(currentCategory);
     setScreen('quiz');
   };
 
   const handleGoHome = () => {
     game.resetGame();
+    setChallengeData(null);
+    navigate('/');
     setScreen('home');
   };
 
@@ -109,7 +203,7 @@ function GameContent() {
     }
   };
 
-  if (loading) {
+  if (loading || isLoadingChallenge) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -135,7 +229,26 @@ function GameContent() {
         {screen === 'signup' && (
           <SignupScreen 
             key="signup"
-            onComplete={() => setScreen('home')} 
+            onComplete={() => {
+              if (challengeData) {
+                setScreen('challenge-intro');
+              } else {
+                setScreen('home');
+              }
+            }} 
+          />
+        )}
+
+        {/* Challenge Intro Screen */}
+        {screen === 'challenge-intro' && challengeData && (
+          <ChallengeIntroScreen
+            key="challenge-intro"
+            challengerInitials={challengeData.challengerInitials}
+            challengerScore={challengeData.challenger_score}
+            challengedAt={challengeData.created_at}
+            category={challengeData.category}
+            onAccept={handleAcceptChallenge}
+            onDecline={handleDeclineChallenge}
           />
         )}
 
@@ -173,6 +286,10 @@ function GameContent() {
             onGoHome={handleGoHome}
             onChallenge={handleChallenge}
             onSubmitQuestion={() => setShowSubmitQuestion(true)}
+            challengeData={challengeData ? {
+              challengerInitials: challengeData.challengerInitials,
+              challengerScore: challengeData.challenger_score
+            } : undefined}
           />
         )}
       </AnimatePresence>

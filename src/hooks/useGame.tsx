@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Question, getRandomQuestions } from '@/data/rapQuestions';
+import { Question, getRandomQuestions, getQuestionsByIds } from '@/data/rapQuestions';
 
 interface GameState {
   questions: Question[];
@@ -31,6 +31,21 @@ export function useGame() {
 
   const startGame = useCallback((category: string = 'rap') => {
     const questions = getRandomQuestions(QUESTIONS_PER_GAME);
+    setGameState({
+      questions,
+      currentQuestionIndex: 0,
+      score: 0,
+      wrongAnswers: 0,
+      isGameOver: false,
+      isGameWon: false,
+      selectedAnswer: null,
+      showResult: false,
+      isCorrect: null
+    });
+  }, []);
+
+  const startChallengeGame = useCallback((questionIds: string[]) => {
+    const questions = getQuestionsByIds(questionIds);
     setGameState({
       questions,
       currentQuestionIndex: 0,
@@ -104,6 +119,7 @@ export function useGame() {
     ...gameState,
     currentQuestion: getCurrentQuestion(),
     startGame,
+    startChallengeGame,
     submitAnswer,
     nextQuestion,
     resetGame,
