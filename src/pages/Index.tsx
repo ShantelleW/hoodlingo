@@ -166,38 +166,12 @@ function GameContent() {
   };
 
   const handlePlayAgain = async () => {
-    // Server-side paywall validation
-    try {
-      const { data, error } = await supabase.functions.invoke('validate-game-start');
-      
-      if (error || !data?.allowed) {
-        if (data?.reason === 'paywall') {
-          toast.error('🔒 You\'ve used your free games! Unlock unlimited play for $1.');
-          window.open('https://buy.stripe.com/cNi8wRfKe03D41g6uPfYY00', '_blank');
-          return;
-        }
-        // Fallback to client-side check
-        if (profile && !profile.has_paid && (profile.games_played || 0) >= 2) {
-          toast.error('🔒 You\'ve used your free games! Unlock unlimited play for $1.');
-          window.open('https://buy.stripe.com/cNi8wRfKe03D41g6uPfYY00', '_blank');
-          return;
-        }
-      }
-    } catch (err) {
-      console.error('Paywall validation error:', err);
-      // Fallback to client-side check
-      if (profile && !profile.has_paid && (profile.games_played || 0) >= 2) {
-        toast.error('🔒 You\'ve used your free games! Unlock unlimited play for $1.');
-        window.open('https://buy.stripe.com/cNi8wRfKe03D41g6uPfYY00', '_blank');
-        return;
-      }
-    }
-    
     // Clear challenge data when playing again normally
     setChallengeData(null);
     game.startGame(currentCategory);
     setScreen('quiz');
   };
+
 
   const handleGoHome = () => {
     game.resetGame();
