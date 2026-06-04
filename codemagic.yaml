@@ -4,7 +4,7 @@ workflows:
     max_build_duration: 120
     environment:
       node: 20.0.0
-      xcode: 15.0
+      xcode: latest
       cocoapods: default
       flutter: none
     scripts:
