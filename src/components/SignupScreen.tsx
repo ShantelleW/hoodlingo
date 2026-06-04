@@ -12,24 +12,22 @@ interface SignupScreenProps {
 }
 
 export function SignupScreen({ onComplete }: SignupScreenProps) {
-  const [isLogin, setIsLogin] = useState(false);
+  const [mode, setMode] = useState<'signup' | 'signin' | 'forgot'>('signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showForm, setShowForm] = useState(false);
   const [kicking, setKicking] = useState(false);
-  const { signUp, signIn } = useAuth();
+  const { signUp, signIn, resetPassword } = useAuth();
 
-  const handleShowForm = async () => {
-    // Kick the door in first, then reveal the signup form
+  const triggerKick = async () => {
     setKicking(true);
     try {
       await Haptics.impact({ style: ImpactStyle.Heavy });
     } catch {
       // Haptics not available (browser)
     }
-    // Second thud as the door swings open
     setTimeout(() => {
       try {
         Haptics.impact({ style: ImpactStyle.Medium });
@@ -38,18 +36,29 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
       }
     }, 200);
     setTimeout(() => {
-      setShowForm(true);
-      setKicking(false);
+      onComplete();
     }, 1100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setSuccess('');
     setLoading(true);
 
+    if (mode === 'forgot') {
+      const result = await resetPassword(email);
+      setLoading(false);
+      if (result.error) {
+        setError(result.error.message);
+      } else {
+        setSuccess('Check your email for a reset link!');
+      }
+      return;
+    }
+
     try {
-      const result = isLogin
+      const result = mode === 'signin'
         ? await signIn(email, password)
         : await signUp(email, password);
 
@@ -57,13 +66,23 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
         setError(result.error.message);
         setLoading(false);
       } else {
-        // Auth success — just complete (door already kicked in)
-        setTimeout(() => onComplete(), 300);
+        // Auth success — play kick animation, then complete
+        if (mode === 'signup') {
+          setSuccess('Account created! Kicking in...');
+        }
+        setLoading(false);
+        triggerKick();
       }
     } catch (err) {
       setError('Something went wrong. Try again.');
       setLoading(false);
     }
+  };
+
+  const switchMode = (newMode: 'signup' | 'signin' | 'forgot') => {
+    setMode(newMode);
+    setError('');
+    setSuccess('');
   };
 
   return (
@@ -170,34 +189,74 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
         )}
       </AnimatePresence>
 
-      {/* Signup form overlay */}
-      <AnimatePresence>
-        {showForm && !kicking && (
+      {/* Auth Form — shown immediately */}
+      {!kicking && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="absolute inset-0 z-20 flex items-center justify-center p-4"
+        >
+          {/* Backdrop */}
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
+
+          {/* Form Card */}
           <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 z-20 flex items-center justify-center p-4"
+            initial={{ scale: 0.9, y: 20 }}
+            animate={{ scale: 1, y: 0 }}
+            className="relative z-10 w-full max-w-sm"
           >
-            {/* Backdrop */}
-            <div 
-              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
-              onClick={() => setShowForm(false)}
-            />
+            {/* Logo */}
+            <div className="text-center mb-6">
+              <div className="text-5xl mb-2">🧠</div>
+              <h1 className="font-display text-3xl text-white tracking-wide">
+                HOODLINGO
+              </h1>
+              <p className="text-white/50 text-sm mt-1">
+                SHANT-KNOWS-IT-ALL PRESENTS
+              </p>
+            </div>
+
+            {/* Prominent Mode Toggle */}
+            {mode !== 'forgot' && (
+              <div className="bg-white/10 backdrop-blur-md rounded-2xl p-1 flex mb-6">
+                <button
+                  type="button"
+                  onClick={() => switchMode('signup')}
+                  className={`flex-1 py-3 rounded-xl font-display text-lg transition-all duration-200 ${
+                    mode === 'signup'
+                      ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  SIGN UP
+                </button>
+                <button
+                  type="button"
+                  onClick={() => switchMode('signin')}
+                  className={`flex-1 py-3 rounded-xl font-display text-lg transition-all duration-200 ${
+                    mode === 'signin'
+                      ? 'bg-primary text-primary-foreground shadow-lg scale-105'
+                      : 'text-white/70 hover:text-white'
+                  }`}
+                >
+                  SIGN IN
+                </button>
+              </div>
+            )}
 
             {/* Form */}
             <motion.div
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="relative z-10 w-full max-w-sm bg-white rounded-2xl p-6 shadow-2xl"
+              key={mode}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2 }}
+              className="bg-white rounded-2xl p-6 shadow-2xl"
             >
-              <div className="text-center mb-6">
-                <div className="text-4xl mb-2">🧠</div>
-                <h2 className="font-display text-xl text-gray-900">
-                  {isLogin ? 'WELCOME BACK' : 'SIGN UP TO ENTER'}
-                </h2>
-              </div>
+              <h2 className="font-display text-xl text-gray-900 text-center mb-6">
+                {mode === 'signup' && 'CREATE YOUR ACCOUNT'}
+                {mode === 'signin' && 'WELCOME BACK'}
+                {mode === 'forgot' && 'RESET PASSWORD'}
+              </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <Input
@@ -208,18 +267,25 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
                   className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-5"
                   required
                 />
-                <Input
-                  type="password"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-5"
-                  required
-                  minLength={6}
-                />
+                
+                {mode !== 'forgot' && (
+                  <Input
+                    type="password"
+                    placeholder="Password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    className="bg-gray-100 border-gray-200 text-gray-900 placeholder:text-gray-400 rounded-xl py-5"
+                    required
+                    minLength={6}
+                  />
+                )}
 
                 {error && (
                   <p className="text-destructive text-sm text-center">{error}</p>
+                )}
+                
+                {success && (
+                  <p className="text-green-600 text-sm text-center font-medium">{success}</p>
                 )}
 
                 <Button
@@ -227,62 +293,47 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
                   className="w-full font-display text-lg py-6 bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl"
                   disabled={loading}
                 >
-                  {loading ? '...' : '🥾 KICK IT IN'}
+                  {loading ? '...' : mode === 'signup' ? '🥾 KICK IT IN' : mode === 'signin' ? 'ENTER' : 'SEND RESET LINK'}
                 </Button>
               </form>
 
-              <div className="mt-4 text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-gray-500 hover:text-gray-700 text-sm"
-                >
-                  {isLogin ? "Need an account? Sign up" : 'Already in? Sign in'}
-                </button>
+              {/* Footer links */}
+              <div className="mt-4 text-center space-y-2">
+                {mode === 'signin' && (
+                  <button
+                    type="button"
+                    onClick={() => switchMode('forgot')}
+                    className="text-gray-400 hover:text-primary text-sm block w-full"
+                  >
+                    Forgot your password?
+                  </button>
+                )}
+                
+                {mode === 'forgot' && (
+                  <button
+                    type="button"
+                    onClick={() => switchMode('signin')}
+                    className="text-gray-500 hover:text-gray-700 text-sm"
+                  >
+                    Back to sign in
+                  </button>
+                )}
+
+                {mode === 'signup' && (
+                  <p className="text-gray-400 text-sm">
+                    Already have an account?{' '}
+                    <button
+                      type="button"
+                      onClick={() => switchMode('signin')}
+                      className="text-primary hover:text-primary/80 font-medium"
+                    >
+                      Sign in
+                    </button>
+                  </p>
+                )}
               </div>
             </motion.div>
           </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Initial door view with HOODLINGO sign */}
-      {!showForm && !kicking && (
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="absolute inset-0 flex flex-col items-center justify-center z-10"
-        >
-          {/* HOODLINGO sign */}
-          <motion.div
-            initial={{ y: -30, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.3 }}
-            className="absolute top-20 bg-white px-8 py-4 rounded-xl shadow-2xl"
-          >
-            <p className="font-display text-2xl text-gray-900">🧠 HOODLINGO</p>
-          </motion.div>
-
-          {/* Buzz in button */}
-          <motion.button
-            initial={{ scale: 0 }}
-            animate={{ scale: 1 }}
-            transition={{ delay: 0.5, type: 'spring' }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleShowForm}
-            className="bg-primary text-primary-foreground px-10 py-5 rounded-2xl shadow-2xl font-display text-xl"
-          >
-            🔔 BUZZ IN
-          </motion.button>
-
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.8 }}
-            className="mt-4 text-white/60 text-sm"
-          >
-            Tap to enter the building
-          </motion.p>
         </motion.div>
       )}
     </motion.div>

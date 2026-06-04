@@ -9,6 +9,7 @@ import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Competition from "./pages/Competition";
 import PlayerProfile from "./pages/PlayerProfile";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/admin" element={<Admin />} />
           <Route path="/competition" element={<Competition />} />
           <Route path="/player/:userId" element={<PlayerProfile />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
