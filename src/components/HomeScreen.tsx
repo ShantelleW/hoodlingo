@@ -23,7 +23,7 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
   const avatar = getAvatarById(profile?.avatar_id || 'avatar1') || avatars[0];
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Urban project background - top half */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
