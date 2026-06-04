@@ -37,6 +37,7 @@ function GameContent() {
   const [currentCategory, setCurrentCategory] = useState('rap');
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSubmitQuestion, setShowSubmitQuestion] = useState(false);
+  const [submitCategory, setSubmitCategory] = useState<string | null>(null);
   const [showChallenge, setShowChallenge] = useState(false);
   const [challengeShareCode, setChallengeShareCode] = useState('');
   const [challengeData, setChallengeData] = useState<ChallengeData | null>(null);
@@ -310,7 +311,7 @@ function GameContent() {
             onPlayAgain={handlePlayAgain}
             onGoHome={handleGoHome}
             onChallenge={handleChallenge}
-            onSubmitQuestion={() => setShowSubmitQuestion(true)}
+            onSubmitQuestion={(cat) => { setSubmitCategory(cat ?? null); setShowSubmitQuestion(true); }}
             onRematch={challengeData ? handleRematch : undefined}
             challengeData={challengeData ? {
               challengerInitials: challengeData.challengerInitials,
@@ -330,7 +331,7 @@ function GameContent() {
               setMenuOpen(false);
               // Could navigate to dedicated leaderboard page
             }}
-            onSubmitQuestion={() => setShowSubmitQuestion(true)}
+            onSubmitQuestion={() => { setSubmitCategory(null); setShowSubmitQuestion(true); }}
           />
         )}
       </AnimatePresence>
@@ -339,8 +340,8 @@ function GameContent() {
       <AnimatePresence>
         {showSubmitQuestion && (
           <SubmitQuestionModal
-            category={currentCategory}
-            onClose={() => setShowSubmitQuestion(false)}
+            category={submitCategory ?? currentCategory}
+            onClose={() => { setShowSubmitQuestion(false); setSubmitCategory(null); }}
           />
         )}
       </AnimatePresence>

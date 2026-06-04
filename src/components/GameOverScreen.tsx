@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { avatars, Avatar } from '@/data/avatars';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { CategoryPrompts } from '@/components/CategoryPromptCard';
 
 interface LeaderboardEntry {
   id: string;
@@ -22,7 +23,7 @@ interface GameOverScreenProps {
   onPlayAgain: () => void;
   onGoHome: () => void;
   onChallenge: () => void;
-  onSubmitQuestion: () => void;
+  onSubmitQuestion: (category?: string) => void;
   onRematch?: () => void;
   challengeData?: {
     challengerInitials: string | null;
@@ -301,7 +302,7 @@ export function GameOverScreen({
               🧠 Got a question the culture should know?
             </p>
             <Button
-              onClick={onSubmitQuestion}
+              onClick={() => onSubmitQuestion()}
               className="w-full font-display text-lg py-5 bg-gradient-to-r from-primary to-accent hover:opacity-90"
             >
               ➕ SUBMIT YOUR QUESTION
@@ -309,6 +310,15 @@ export function GameOverScreen({
             <p className="text-center text-xs text-primary mt-2">
               Best submissions get OG status! 👑
             </p>
+          </motion.div>
+
+          {/* Other category prompts with hover examples */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1, duration: 0.4 }}
+          >
+            <CategoryPrompts excluding={category} onPick={onSubmitQuestion} />
           </motion.div>
 
           <div className="grid grid-cols-2 gap-3">
