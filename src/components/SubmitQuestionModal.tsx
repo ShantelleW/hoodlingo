@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { X, Upload, Sparkles, Loader2 } from 'lucide-react';
+import { X, Upload, Sparkles, Loader2, Wand2, Lightbulb, Image as ImageIcon } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -16,20 +16,39 @@ interface SubmitQuestionModalProps {
 
 type Kind = 'correct' | 'wrong';
 
-export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalProps) {
+// Convert a File to a base64 data URL
+async function fileToDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result as string);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+
+export function SubmitQuestionModal({ category: initialCategory, onClose }: SubmitQuestionModalProps) {
   const { user, updateProfile, profile } = useAuth();
+  const [category, setCategory] = useState(initialCategory);
   const [question, setQuestion] = useState('');
   const [hint, setHint] = useState('');
   const [options, setOptions] = useState(['', '', '', '']);
   const [correctAnswer, setCorrectAnswer] = useState(0);
   const [resultTitle, setResultTitle] = useState('');
   const [resultCommentary, setResultCommentary] = useState('');
+  const [insights, setInsights] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [correctImg, setCorrectImg] = useState<string | null>(null);
   const [wrongImg, setWrongImg] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState<Kind | null>(null);
+  const [autoFillLoading, setAutoFillLoading] = useState(false);
+  const [insightsLoading, setInsightsLoading] = useState(false);
+
+  // Reference image (used to inform AI generation & auto-fill)
+  const [refImg, setRefImg] = useState<{ url: string; dataUrl: string; mime: string } | null>(null);
+
   const correctFileRef = useRef<HTMLInputElement>(null);
   const wrongFileRef = useRef<HTMLInputElement>(null);
+  const refFileRef = useRef<HTMLInputElement>(null);
 
   const fireConfetti = () => {
     const end = Date.now() + 1500;
@@ -41,28 +60,61 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
     })();
   };
 
-  const handleFile = async (file: File, kind: Kind) => {
-    if (!user) return;
-    if (file.size > 8 * 1024 * 1024) { toast.error('Max 8MB'); return; }
+  const uploadToBucket = async (file: File): Promise<string | null> => {
+    if (!user) return null;
     const ext = file.name.split('.').pop() || 'png';
     const path = `${user.id}/${crypto.randomUUID()}.${ext}`;
     const { error } = await supabase.storage.from('submission-images').upload(path, file);
-    if (error) { toast.error(error.message); return; }
+    if (error) { toast.error(error.message); return null; }
     const { data } = supabase.storage.from('submission-images').getPublicUrl(path);
-    if (kind === 'correct') setCorrectImg(data.publicUrl); else setWrongImg(data.publicUrl);
+    return data.publicUrl;
+  };
+
+  // Upload an arbitrary image (correct/wrong answer slot)
+  const handleFile = async (file: File, kind: Kind) => {
+    if (file.size > 8 * 1024 * 1024) { toast.error('Max 8MB'); return; }
+    const url = await uploadToBucket(file);
+    if (!url) return;
+    if (kind === 'correct') setCorrectImg(url); else setWrongImg(url);
     toast.success('Image uploaded');
   };
 
+  // Upload reference image — also kept as base64 for vision calls
+  const handleReferenceFile = async (file: File) => {
+    if (file.size > 8 * 1024 * 1024) { toast.error('Max 8MB'); return; }
+    const dataUrl = await fileToDataUrl(file);
+    const url = await uploadToBucket(file);
+    setRefImg({
+      url: url || dataUrl,
+      dataUrl,
+      mime: file.type || 'image/png',
+    });
+    toast.success('Reference image ready — try Auto-Fill or Generate.');
+  };
+
+  // Generate AI image (correct/wrong), optionally using reference image
   const handleAIGen = async (kind: Kind) => {
-    const prompt = kind === 'correct' ? (resultTitle || options[correctAnswer] || question) : (question || 'wrong answer');
-    if (!prompt) { toast.error('Add question/answer text first'); return; }
+    const prompt = kind === 'correct'
+      ? (resultTitle || options[correctAnswer] || question)
+      : (question || 'wrong answer reaction');
+    if (!prompt) { toast.error('Add question or answer text first'); return; }
+
     setAiLoading(kind);
     try {
-      const { data, error } = await supabase.functions.invoke('generate-answer-image', { body: { prompt, kind } });
+      const { data, error } = await supabase.functions.invoke('generate-answer-image', {
+        body: {
+          prompt,
+          kind,
+          category,
+          referenceImageBase64: refImg?.dataUrl,
+          referenceMimeType: refImg?.mime,
+        },
+      });
       if (error) throw error;
-      if ((data as any)?.url) {
-        if (kind === 'correct') setCorrectImg((data as any).url); else setWrongImg((data as any).url);
-        toast.success('AI image generated');
+      const url = (data as any)?.imageUrl || (data as any)?.url;
+      if (url) {
+        if (kind === 'correct') setCorrectImg(url); else setWrongImg(url);
+        toast.success('AI image generated' + (refImg ? ' from your reference' : ''));
       } else {
         toast.error((data as any)?.error || 'Failed');
       }
@@ -70,6 +122,72 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
       toast.error(e.message || 'AI generation failed');
     } finally {
       setAiLoading(null);
+    }
+  };
+
+  // Auto-fill all fields from the reference image using vision AI
+  const handleAutoFill = async () => {
+    if (!refImg) {
+      toast.error('Upload a reference image first');
+      return;
+    }
+    setAutoFillLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-question-image', {
+        body: {
+          mode: 'auto_fill',
+          category,
+          imageBase64: refImg.dataUrl,
+          imageMimeType: refImg.mime,
+        },
+      });
+      if (error) throw error;
+      const d = data as any;
+      if (d?.error) { toast.error(d.error); return; }
+      if (d?.category) setCategory(d.category);
+      if (d?.question) setQuestion(d.question);
+      if (d?.hint) setHint(d.hint);
+      if (Array.isArray(d?.options) && d.options.length === 4) setOptions(d.options);
+      if (typeof d?.correctAnswerIndex === 'number') setCorrectAnswer(d.correctAnswerIndex);
+      if (d?.resultTitle) setResultTitle(d.resultTitle);
+      if (d?.resultCommentary) setResultCommentary(d.resultCommentary);
+      if (d?.insights) setInsights(d.insights);
+      toast.success('Auto-filled from image! Review and tweak.');
+    } catch (e: any) {
+      toast.error(e.message || 'Auto-fill failed');
+    } finally {
+      setAutoFillLoading(false);
+    }
+  };
+
+  // Generate insights/commentary from current question + answer
+  const handleInsights = async () => {
+    if (!question.trim() || !options[correctAnswer]?.trim()) {
+      toast.error('Add a question and mark the correct answer first');
+      return;
+    }
+    setInsightsLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('analyze-question-image', {
+        body: {
+          mode: 'insights',
+          category,
+          question,
+          correctAnswer: options[correctAnswer],
+          options,
+        },
+      });
+      if (error) throw error;
+      const d = data as any;
+      if (d?.error) { toast.error(d.error); return; }
+      if (d?.resultTitle) setResultTitle(d.resultTitle);
+      if (d?.resultCommentary) setResultCommentary(d.resultCommentary);
+      if (d?.insights) setInsights(d.insights);
+      toast.success('Insights generated!');
+    } catch (e: any) {
+      toast.error(e.message || 'Insights failed');
+    } finally {
+      setInsightsLoading(false);
     }
   };
 
@@ -83,7 +201,7 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
 
     setIsSubmitting(true);
     try {
-      const { data: inserted, error } = await supabase.from('question_submissions').insert({
+      const { error } = await supabase.from('question_submissions').insert({
         submitted_by: user.id,
         category,
         question: question.trim(),
@@ -91,10 +209,12 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
         options: options,
         correct_answer: options[correctAnswer],
         result_title: resultTitle.trim() || 'NICE!',
-        result_commentary: resultCommentary.trim() || 'You know your stuff!',
+        result_commentary: [resultCommentary.trim(), insights.trim() && `\n\n💡 ${insights.trim()}`]
+          .filter(Boolean)
+          .join('') || 'You know your stuff!',
         correct_image_url: correctImg,
         wrong_image_url: wrongImg,
-      }).select().single();
+      });
 
       if (error) throw error;
 
@@ -106,7 +226,6 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
       } else {
         toast.success('Question submitted!');
       }
-
 
       setTimeout(onClose, 1200);
     } catch (error) {
@@ -120,7 +239,7 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
   const ImageSlot = ({ kind, url, fileRef }: { kind: Kind; url: string | null; fileRef: React.RefObject<HTMLInputElement> }) => (
     <div className="space-y-2">
       <label className="text-sm text-muted-foreground block">
-        {kind === 'correct' ? '✅ Right Answer Image/GIF' : '❌ Wrong Answer Image/GIF'}
+        {kind === 'correct' ? '✅ Right Answer Image' : '❌ Wrong Answer Image'}
       </label>
       {url && <img src={url} alt={kind} className="w-full h-32 object-cover rounded-md border border-border" />}
       <div className="flex gap-2">
@@ -138,9 +257,12 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
           type="button" variant="outline" size="sm" className="flex-1"
           disabled={aiLoading === kind}
           onClick={() => handleAIGen(kind)}
+          title={refImg ? 'Generate using your reference image' : 'Generate from question/answer text'}
         >
-          {aiLoading === kind ? <Loader2 className="h-3 w-3 mr-1 animate-spin" /> : <Sparkles className="h-3 w-3 mr-1" />}
-          AI Generate
+          {aiLoading === kind
+            ? <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+            : <Sparkles className="h-3 w-3 mr-1" />}
+          {refImg ? 'AI Remix' : 'AI Generate'}
         </Button>
       </div>
     </div>
@@ -155,9 +277,76 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
         initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }}
         className="quiz-card w-full max-w-md max-h-[90vh] overflow-y-auto"
       >
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4">
           <h2 className="font-display text-2xl text-primary">SUBMIT A QUESTION</h2>
           <Button variant="ghost" size="icon" onClick={onClose}><X className="h-5 w-5" /></Button>
+        </div>
+
+        {/* Category pill */}
+        <div className="mb-4 flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">Category:</span>
+          <select
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+            className="bg-secondary text-primary text-xs font-display uppercase px-2 py-1 rounded border border-border"
+          >
+            <option value="rap">Rap</option>
+            <option value="streets">In These Streets</option>
+            <option value="flicks">Hood Flicks</option>
+            <option value="stores">Corner Stores</option>
+          </select>
+        </div>
+
+        {/* AI Reference Image + Auto-Fill */}
+        <div className="mb-5 rounded-xl border border-primary/40 bg-gradient-to-br from-primary/10 to-accent/10 p-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <Wand2 className="h-4 w-4 text-accent" />
+            <p className="text-sm font-display text-accent">AI ASSIST</p>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Upload a photo as reference. AI can auto-fill the whole question and remix it into hype answer images.
+          </p>
+
+          {refImg && (
+            <div className="relative">
+              <img src={refImg.dataUrl} alt="reference" className="w-full h-28 object-cover rounded-md border border-border" />
+              <button
+                type="button"
+                onClick={() => setRefImg(null)}
+                className="absolute top-1 right-1 bg-background/80 rounded-full p-1"
+                aria-label="Remove reference"
+              >
+                <X className="h-3 w-3" />
+              </button>
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <input
+              ref={refFileRef}
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={(e) => e.target.files?.[0] && handleReferenceFile(e.target.files[0])}
+            />
+            <Button
+              type="button" variant="outline" size="sm" className="flex-1"
+              onClick={() => refFileRef.current?.click()}
+            >
+              <ImageIcon className="h-3 w-3 mr-1" />
+              {refImg ? 'Change' : 'Upload Reference'}
+            </Button>
+            <Button
+              type="button" size="sm" className="flex-1 bg-accent text-accent-foreground hover:opacity-90"
+              disabled={!refImg || autoFillLoading}
+              onClick={handleAutoFill}
+            >
+              {autoFillLoading
+                ? <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+                : <Wand2 className="h-3 w-3 mr-1" />}
+              Auto-Fill
+            </Button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -190,6 +379,21 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
             </div>
           </div>
 
+          {/* AI Insights button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={insightsLoading}
+            onClick={handleInsights}
+            className="w-full border-accent/50 text-accent hover:bg-accent/10"
+          >
+            {insightsLoading
+              ? <Loader2 className="h-3 w-3 mr-1 animate-spin" />
+              : <Lightbulb className="h-3 w-3 mr-1" />}
+            Generate Result Title + Commentary + Insights
+          </Button>
+
           <div>
             <label className="text-sm text-muted-foreground mb-1 block">Result Title</label>
             <Input value={resultTitle} onChange={(e) => setResultTitle(e.target.value)} placeholder='e.g. "JAY-Z! DUH!"' className="bg-secondary border-border" />
@@ -200,6 +404,20 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
             <Textarea value={resultCommentary} onChange={(e) => setResultCommentary(e.target.value)} placeholder="Fun fact about the answer..." className="bg-secondary border-border" />
           </div>
 
+          {insights && (
+            <div>
+              <label className="text-sm text-muted-foreground mb-1 block flex items-center gap-1">
+                <Lightbulb className="h-3 w-3 text-accent" /> Cultural Insights (for OG reviewers)
+              </label>
+              <Textarea
+                value={insights}
+                onChange={(e) => setInsights(e.target.value)}
+                className="bg-secondary border-border text-sm"
+                rows={3}
+              />
+            </div>
+          )}
+
           <ImageSlot kind="correct" url={correctImg} fileRef={correctFileRef} />
           <ImageSlot kind="wrong" url={wrongImg} fileRef={wrongFileRef} />
 
@@ -209,7 +427,7 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
         </form>
 
         <p className="text-muted-foreground text-xs text-center mt-4">
-          Submit questions to become an OG. We'll email you a preview.
+          Submit questions to become an OG.
         </p>
       </motion.div>
     </motion.div>
