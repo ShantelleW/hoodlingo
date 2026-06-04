@@ -245,14 +245,8 @@ export function SideMenu({ isOpen, onClose, onViewLeaderboard, onSubmitQuestion 
                 </Button>
               )}
 
-              {profile?.has_paid && (
-                <div className="p-4 bg-success/10 rounded-xl mt-4">
-                  <p className="text-success font-bold text-sm flex items-center gap-2">
-                    ✓ UNLIMITED ACCESS
-                  </p>
-                </div>
-              )}
             </nav>
+
 
             {/* Challenge History Section */}
             <div className="mb-6">
