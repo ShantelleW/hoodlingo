@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Menu, Crown } from 'lucide-react';
+import { Menu } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { avatars, getAvatarById } from '@/data/avatars';
@@ -22,7 +23,7 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
   const avatar = getAvatarById(profile?.avatar_id || 'avatar1') || avatars[0];
 
   return (
-    <div className="min-h-screen flex flex-col relative overflow-hidden">
+    <div className="min-h-screen flex flex-col relative overflow-hidden pt-[env(safe-area-inset-top)] pb-[env(safe-area-inset-bottom)]">
       {/* Urban project background - top half */}
       <div 
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"
@@ -57,12 +58,8 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
           <div className={`h-12 w-12 rounded-full ${avatar.style} flex items-center justify-center text-xl border-2 border-white shadow-lg`}>
             {avatar.emoji}
           </div>
-          {profile?.has_paid && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
-              <Crown className="w-3 h-3 text-white" />
-            </div>
-          )}
         </motion.div>
+
       </header>
 
       {/* Main Content */}
@@ -142,25 +139,12 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
               transition={{ delay: 0.7 }}
               className="mt-6 text-center"
             >
-              {profile.has_paid ? (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-full border border-yellow-400/30">
-                  <Crown className="w-4 h-4 text-yellow-500" />
-                  <span className="text-yellow-600 font-bold text-sm">UNLIMITED ACCESS</span>
-                </div>
-              ) : (
-                <>
-                  <p className="text-gray-500 text-sm">
-                    Games played: <span className="text-gray-800 font-bold">{profile.games_played || 0}</span>
-                  </p>
-                  {(profile.games_played || 0) >= 2 && (
-                    <p className="text-orange-500 text-xs mt-1">
-                      🔒 Unlock unlimited games for $1!
-                    </p>
-                  )}
-                </>
-              )}
+              <p className="text-gray-500 text-sm">
+                Games played: <span className="text-gray-800 font-bold">{profile.games_played || 0}</span>
+              </p>
             </motion.div>
           )}
+
         </div>
       </main>
     </div>
