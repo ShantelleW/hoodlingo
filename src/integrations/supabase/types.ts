@@ -228,6 +228,7 @@ export type Database = {
           created_at: string
           hint: string | null
           id: string
+          option_images: Json
           options: Json
           question: string
           result_commentary: string | null
@@ -245,6 +246,7 @@ export type Database = {
           created_at?: string
           hint?: string | null
           id?: string
+          option_images?: Json
           options: Json
           question: string
           result_commentary?: string | null
@@ -262,6 +264,7 @@ export type Database = {
           created_at?: string
           hint?: string | null
           id?: string
+          option_images?: Json
           options?: Json
           question?: string
           result_commentary?: string | null
@@ -283,6 +286,7 @@ export type Database = {
           hint: string | null
           id: string
           is_approved: boolean | null
+          option_images: Json
           options: Json
           question: string
           result_commentary: string | null
@@ -301,6 +305,7 @@ export type Database = {
           hint?: string | null
           id?: string
           is_approved?: boolean | null
+          option_images?: Json
           options: Json
           question: string
           result_commentary?: string | null
@@ -319,6 +324,7 @@ export type Database = {
           hint?: string | null
           id?: string
           is_approved?: boolean | null
+          option_images?: Json
           options?: Json
           question?: string
           result_commentary?: string | null

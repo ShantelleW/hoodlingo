@@ -1,0 +1,2 @@
+ALTER TABLE public.question_submissions ADD COLUMN IF NOT EXISTS option_images jsonb NOT NULL DEFAULT '[]'::jsonb;
+ALTER TABLE public.questions ADD COLUMN IF NOT EXISTS option_images jsonb NOT NULL DEFAULT '[]'::jsonb;
