@@ -359,6 +359,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_leaderboard: {
+        Args: { _category?: string; _timeframe?: string }
+        Returns: {
+          approved_submissions: number
+          avatar_id: string
+          challenge_points: number
+          display_name: string
+          games_played: number
+          initials: string
+          quiz_points: number
+          rank: number
+          submission_points: number
+          total_points: number
+          user_id: string
+          vote_points: number
+        }[]
+      }
       get_player_stats: { Args: { _user_id: string }; Returns: Json }
       has_role: {
         Args: {
