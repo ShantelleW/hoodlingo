@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion';
-import { Menu, Crown } from 'lucide-react';
+import { Menu } from 'lucide-react';
+
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/hooks/useAuth';
 import { avatars, getAvatarById } from '@/data/avatars';
