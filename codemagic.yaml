@@ -7,7 +7,6 @@ workflows:
       xcode: 15.0
       cocoapods: default
       flutter: none
-      android: none
     scripts:
       - name: Install dependencies
         script: |
