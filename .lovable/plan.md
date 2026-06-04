@@ -1,91 +1,60 @@
-# Plan: Hoodlingo Competition Leaderboard (iOS)
+# Deploy Hoodlingo to the Apple App Store
 
-Add a Competition feature inside the existing Hoodlingo Capacitor iOS app. Shares the current auth, backend, and design system — no new project. After web changes, user runs `npm run build && npx cap sync ios` to ship to iOS.
+Lovable can't push to the App Store for you — Apple requires submission from a Mac with Xcode, signed by your paid Apple Developer account. What I *can* do is get the project 100% ready for submission so the only remaining work happens on your Mac.
 
-## 1. Scoring model
+## What you'll need before we start
 
-Each player's total competition points = sum of:
+- Apple Developer Program membership ($99/year) — https://developer.apple.com/programs/
+- A Mac with the latest Xcode installed
+- An App Store Connect account (comes with Developer Program)
+- Your own GitHub repo (via Lovable "Export to GitHub")
 
-| Source | Points | Data source |
-|---|---|---|
-| Quiz play | raw score | `scores.score` |
-| Approved submission | +10 each | `questions` where `submitted_by = user` and `is_approved = true` |
-| OG vote cast | +1 each | `og_votes` where `og_user_id = user` |
-| Challenge win | +5 each | `challenge_responses` vs `challenges.challenger_score` |
+## Part 1 — What I'll prepare in Lovable (code side)
 
-Computed server-side via a Postgres view + RPC so totals stay consistent.
+1. **Lock down `capacitor.config.ts` for production**
+   - Remove any `server.url` hot-reload block (must be gone for App Store builds — Apple rejects apps that load remote JS).
+   - Keep `appId: com.shantelle.hoodlingo`, `appName: Hoodlingo`, `webDir: dist`.
+   - Add iOS-safe defaults: `ios.contentInset: 'always'`, splash screen + status bar plugin config.
 
-## 2. Database changes (migration)
+2. **iOS polish pass**
+   - Add safe-area padding (notch + home indicator) to the main shell and the door-kick auth screen so nothing gets clipped on iPhone.
+   - Confirm `@capacitor/haptics` calls degrade gracefully on web.
+   - Add `@capacitor/status-bar` + `@capacitor/splash-screen` (dark purple to match the brand).
 
-- `public.v_player_points` — view aggregating per-user points by source.
-- `public.get_leaderboard(_timeframe text, _category text default null)` — SECURITY DEFINER function returning `{user_id, display_name, initials, avatar_id, points, rank, games_played, accuracy}` for `'all_time' | 'weekly' | 'monthly'`, optionally filtered by category.
-- `public.get_player_stats(_user_id uuid)` — returns totals, breakdown by source, games played, accuracy %, approved submissions list, recent activity (last 20 events across scores/submissions/votes).
-- GRANT EXECUTE to `authenticated` and `anon` (leaderboard is public-readable, matching existing `scores` policy).
+3. **App icon + splash assets**
+   - Generate 1024×1024 App Store icon + splash in the urban hip-hop aesthetic (dark purple, Russo One wordmark) and place them so `@capacitor/assets` can fan them out into every required iOS size.
 
-No new tables required.
+4. **Stripe paywall on iOS — important call-out**
+   - Apple requires **In-App Purchase (StoreKit)** for digital goods like the $1 unlock, not Stripe. Shipping Stripe-only will get the app **rejected**.
+   - Two paths (pick one in the questions below):
+     - **A. Swap the $1 unlock to StoreKit** (RevenueCat or `@capacitor-community/in-app-purchases`). Stripe stays for web.
+     - **B. Ship as a free app for v1**, remove the paywall on iOS only, keep Stripe on web. Fastest path to approval.
 
-## 3. New routes & components
+5. **App Store metadata file** — I'll generate a `APP_STORE_SUBMISSION.md` with ready-to-paste copy for: app name, subtitle, promotional text, description, keywords, support URL, privacy policy URL, age rating answers, and category (Games → Trivia).
+
+## Part 2 — What you do on your Mac (one-time)
 
 ```text
-src/pages/Competition.tsx              - tabs: All-Time | Weekly | Monthly, optional category filter
-src/pages/PlayerProfile.tsx            - /player/:userId
-src/components/competition/
-  ├── LeaderboardTable.tsx             - rank, avatar, initials, points, games
-  ├── LeaderboardRow.tsx               - tap → PlayerProfile
-  ├── TimeframeTabs.tsx
-  ├── CategoryFilter.tsx               - Rap / Streets / Flicks / Stores / All
-  ├── PointsBreakdownCard.tsx          - quiz / submissions / votes / challenges
-  ├── ApprovedSubmissionsList.tsx
-  └── ActivityFeed.tsx                 - recent scores, approvals, votes
-src/hooks/useLeaderboard.tsx           - react-query wrapper over RPC
-src/hooks/usePlayerStats.tsx
+1. Export to GitHub (button in Lovable), then `git clone` to your Mac
+2. npm install
+3. npx cap add ios
+4. npm run build && npx cap sync ios
+5. npx cap open ios          # opens Xcode
+6. In Xcode: select your Team (Signing & Capabilities), set version 1.0.0 / build 1
+7. Product → Archive → Distribute App → App Store Connect → Upload
+8. In App Store Connect: create the app listing, attach the build, submit for review
 ```
 
-Routes added in `src/App.tsx`:
-- `/competition`
-- `/player/:userId`
+Review typically takes 24–48 hours. First submission often gets one rejection — usually for missing privacy policy URL or IAP issues — which is why Part 1 matters.
 
-## 4. Navigation integration
+## Technical details
 
-- Add "Competition" entry to `SideMenu.tsx` with trophy icon.
-- Add a "View Leaderboard" CTA on `GameOverScreen.tsx` linking to `/competition`.
-- Existing arcade leaderboard (post-game initials) stays unchanged.
+- **Bundle ID** stays `com.shantelle.hoodlingo` — register this exact ID in your Apple Developer account under Identifiers before the first Xcode upload.
+- **Privacy manifest** (`PrivacyInfo.xcprivacy`) required since 2024: I'll add one declaring our data use (email for auth, gameplay scores).
+- **App Tracking Transparency**: not needed unless we add ad SDKs (we don't).
+- **Push notifications**: not in scope here; the weekly digest is email-based.
+- **Backend**: nothing to change — Supabase/Lovable Cloud works the same from a native shell.
 
-## 5. UI/UX
+## Questions before I start
 
-- Reuses existing design tokens (`quiz-card`, display font, primary/secondary colors).
-- Top 3 ranks get gold/silver/bronze accent treatment.
-- Current user's row highlighted and pinned visible.
-- Mobile-first; safe-area padding for iOS notch.
-- Pull-to-refresh on leaderboard.
-
-## 6. iOS shipping steps (user runs locally after merge)
-
-```bash
-git pull
-npm install
-npm run build
-npx cap sync ios
-npx cap open ios
-```
-Then archive in Xcode and submit via App Store Connect.
-
-## File changes summary
-
-| File | Action |
-|---|---|
-| DB migration | New view + 2 RPC functions |
-| `src/App.tsx` | Add 2 routes |
-| `src/pages/Competition.tsx` | New |
-| `src/pages/PlayerProfile.tsx` | New |
-| `src/components/competition/*` | New (7 files) |
-| `src/hooks/useLeaderboard.tsx` | New |
-| `src/hooks/usePlayerStats.tsx` | New |
-| `src/components/SideMenu.tsx` | Add nav link |
-| `src/components/GameOverScreen.tsx` | Add CTA |
-
-## Out of scope
-
-- Push notifications for rank changes
-- Seasons/resets with archived snapshots
-- Friend-only leaderboards
+I need two decisions to know exactly what to build in Part 1.
