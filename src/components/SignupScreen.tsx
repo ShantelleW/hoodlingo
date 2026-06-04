@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import projectDoor from '@/assets/project-door.jpg';
 import timbBoot from '@/assets/timb-boot-kick.png';
 
