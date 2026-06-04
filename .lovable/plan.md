@@ -1,60 +1,46 @@
-# Deploy Hoodlingo to the Apple App Store
+# Plan: Category Submission Prompts with Hover Examples
 
-Lovable can't push to the App Store for you — Apple requires submission from a Mac with Xcode, signed by your paid Apple Developer account. What I *can* do is get the project 100% ready for submission so the only remaining work happens on your Mac.
+## Where it goes
 
-## What you'll need before we start
+On the **Game Over screen** (`src/components/GameOverScreen.tsx`), below the existing "Submit a Question" CTA, add a new section: **"Got heat for these? Drop a question."**
 
-- Apple Developer Program membership ($99/year) — https://developer.apple.com/programs/
-- A Mac with the latest Xcode installed
-- An App Store Connect account (comes with Developer Program)
-- Your own GitHub repo (via Lovable "Export to GitHub")
+It renders 3 cards — one for each category the user did NOT just play. (If they just played Flicks, they see Rap, Streets, Stores.)
 
-## Part 1 — What I'll prepare in Lovable (code side)
+## Card behavior
 
-1. **Lock down `capacitor.config.ts` for production**
-   - Remove any `server.url` hot-reload block (must be gone for App Store builds — Apple rejects apps that load remote JS).
-   - Keep `appId: com.shantelle.hoodlingo`, `appName: Hoodlingo`, `webDir: dist`.
-   - Add iOS-safe defaults: `ios.contentInset: 'always'`, splash screen + status bar plugin config.
+Each card:
+- Shows the category name + a one-line prompt
+- On **hover** (desktop) / **long-press** (mobile), reveals an example image grid behind/over the card with a subtle scale + fade animation
+- On **click**, opens `SubmitQuestionModal` pre-targeted to that category (extend the existing `onSubmitQuestion` to accept an optional category arg, then thread it through `Index.tsx` so the modal opens with that category instead of `currentCategory`)
 
-2. **iOS polish pass**
-   - Add safe-area padding (notch + home indicator) to the main shell and the door-kick auth screen so nothing gets clipped on iPhone.
-   - Confirm `@capacitor/haptics` calls degrade gracefully on web.
-   - Add `@capacitor/status-bar` + `@capacitor/splash-screen` (dark purple to match the brand).
+## Example imagery per category
 
-3. **App icon + splash assets**
-   - Generate 1024×1024 App Store icon + splash in the urban hip-hop aesthetic (dark purple, Russo One wordmark) and place them so `@capacitor/assets` can fan them out into every required iOS size.
+| Category | Prompt | Hover examples |
+|---|---|---|
+| Hood Flicks | "Know your classics? Add a movie question." | 3 stylized movie-poster collages evoking Friday, Boyz N The Hood, Juice |
+| Corner Stores | "Bodega expert? Drop a store question." | 1 image: cat napping on a stack of bread loaves in a bodega aisle |
+| In These Streets | "Street smart? Add a streets question." | 1 image: red and blue bandanas crossed on concrete (Crips vs Bloods, non-graphic) |
+| Rap (fallback when not played) | "Bars on deck? Add a rap question." | Stylized vinyl + mic + gold chain still life |
 
-4. **Stripe paywall on iOS — important call-out**
-   - Apple requires **In-App Purchase (StoreKit)** for digital goods like the $1 unlock, not Stripe. Shipping Stripe-only will get the app **rejected**.
-   - Two paths (pick one in the questions below):
-     - **A. Swap the $1 unlock to StoreKit** (RevenueCat or `@capacitor-community/in-app-purchases`). Stripe stays for web.
-     - **B. Ship as a free app for v1**, remove the paywall on iOS only, keep Stripe on web. Fastest path to approval.
+**Image sourcing:** Generate once using the agent's `imagegen` tool and save as project assets under `src/assets/category-prompts/` (then externalize via `lovable-assets`). We will use **stylized, non-IP representations** — e.g. "1990s South Central LA movie-poster collage with red Chevy lowrider, palm trees, and barbershop" rather than literal "Friday" poster. This avoids copyright/content-policy rejections and Apple review issues. Same applies to the Crips/Bloods example — colored bandanas only, no gang iconography or weapons.
 
-5. **App Store metadata file** — I'll generate a `APP_STORE_SUBMISSION.md` with ready-to-paste copy for: app name, subtitle, promotional text, description, keywords, support URL, privacy policy URL, age rating answers, and category (Games → Trivia).
+## Files touched
 
-## Part 2 — What you do on your Mac (one-time)
+- **New**: 4 generated images in `src/assets/category-prompts/` (rap, flicks, stores, streets) — externalized via `lovable-assets`
+- **New**: `src/components/CategoryPromptCard.tsx` — single card with hover-reveal logic (framer-motion `whileHover`, `AnimatePresence` for the image overlay)
+- **Edited**: `src/components/GameOverScreen.tsx` — render `<CategoryPrompts excluding={category} onPick={onSubmitQuestion} />` block
+- **Edited**: `src/pages/Index.tsx` — change `onSubmitQuestion` signature to `(category?: string) => void`, store selected category in state, pass to `SubmitQuestionModal`
+- **Edited**: `src/components/SideMenu.tsx` — keep existing signature; passes `undefined` so it uses current category (no behavior change)
 
-```text
-1. Export to GitHub (button in Lovable), then `git clone` to your Mac
-2. npm install
-3. npx cap add ios
-4. npm run build && npx cap sync ios
-5. npx cap open ios          # opens Xcode
-6. In Xcode: select your Team (Signing & Capabilities), set version 1.0.0 / build 1
-7. Product → Archive → Distribute App → App Store Connect → Upload
-8. In App Store Connect: create the app listing, attach the build, submit for review
-```
+## Design notes
 
-Review typically takes 24–48 hours. First submission often gets one rejection — usually for missing privacy policy URL or IAP issues — which is why Part 1 matters.
+- Cards use existing `quiz-card` styling, Bebas Neue category names, muted prompt text
+- Hover overlay: image fills card with 0.85 opacity, dark gradient bottom-up for legibility, category label stays visible
+- Mobile: tap-and-hold for 300ms reveals the image; tap releases. Plain tap = open modal.
+- All copy in the urban/hip-hop voice already established
 
-## Technical details
+## Out of scope
 
-- **Bundle ID** stays `com.shantelle.hoodlingo` — register this exact ID in your Apple Developer account under Identifiers before the first Xcode upload.
-- **Privacy manifest** (`PrivacyInfo.xcprivacy`) required since 2024: I'll add one declaring our data use (email for auth, gameplay scores).
-- **App Tracking Transparency**: not needed unless we add ad SDKs (we don't).
-- **Push notifications**: not in scope here; the weekly digest is email-based.
-- **Backend**: nothing to change — Supabase/Lovable Cloud works the same from a native shell.
-
-## Questions before I start
-
-I need two decisions to know exactly what to build in Part 1.
+- No changes to `SubmitQuestionModal` itself beyond receiving a pre-selected category prop (already takes `category`)
+- No backend/RLS changes
+- No new analytics events (can add later)
