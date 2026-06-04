@@ -18,7 +18,7 @@ Deno.serve(async (req) => {
 
   try {
     const body = (await req.json()) as RequestBody;
-    const { prompt, kind, referenceImageBase64, referenceMimeType, category } = body;
+    const { prompt, kind, referenceImageBase64, referenceMimeType, category, optionText, allOptions, question } = body;
 
     if (!prompt || typeof prompt !== 'string') {
       return new Response(JSON.stringify({ error: 'prompt is required' }), {
@@ -44,9 +44,21 @@ Deno.serve(async (req) => {
         ? `A bold, comedic "WRONG ANSWER" reaction image. Urban hip-hop aesthetic, vibrant magenta/red/purple, single expressive subject centered, exaggerated meme-style energy, dramatic lighting. ${categoryHint} Square 1:1 composition.`
         : `A bold, celebratory "RIGHT ANSWER" hype image. Urban hip-hop aesthetic, vibrant gold/purple/cyan, single hero subject centered, triumphant energy, dramatic lighting. ${categoryHint} Square 1:1 composition.`;
 
+    const contextLines: string[] = [];
+    if (question) contextLines.push(`Question: "${question}"`);
+    if (optionText) {
+      contextLines.push(
+        kind === 'correct'
+          ? `This image celebrates the CORRECT answer: "${optionText}".`
+          : `This image roasts the WRONG answer choice: "${optionText}". Make it visually obvious why it's wrong/funny.`
+      );
+    }
+    if (allOptions?.length) contextLines.push(`All choices were: ${allOptions.map((o, i) => `${String.fromCharCode(65+i)}) ${o}`).join(' | ')}`);
+    const contextText = contextLines.length ? `\n\nContext:\n${contextLines.join('\n')}` : '';
+
     // Build content — multimodal if reference image is provided
     const userContent: any[] = [
-      { type: 'text', text: `${styleHint}\n\nSubject: ${prompt}` },
+      { type: 'text', text: `${styleHint}\n\nSubject: ${prompt}${contextText}` },
     ];
 
     if (referenceImageBase64) {
