@@ -55,17 +55,17 @@ export function CategoryPromptCard({ category, onClick }: CategoryPromptCardProp
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       onTouchStart={() => setHovered(true)}
-      onTouchEnd={() => setTimeout(() => setHovered(false), 1200)}
+      onTouchEnd={() => setTimeout(() => setHovered(false), 1500)}
       whileHover={{ scale: 1.02 }}
       whileTap={{ scale: 0.98 }}
-      className="relative w-full overflow-hidden rounded-xl border border-primary/30 bg-card/80 p-4 text-left transition-colors hover:border-primary"
+      className="relative w-full overflow-hidden rounded-xl border border-primary/30 bg-card/80 p-3 text-left transition-colors hover:border-primary"
     >
-      {/* Hover image overlay */}
+      {/* Expanding image overlay on hover/tap */}
       <AnimatePresence>
         {hovered && (
           <motion.div
-            initial={{ opacity: 0, scale: 1.05 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.25 }}
             className="absolute inset-0 z-0"
@@ -76,19 +76,30 @@ export function CategoryPromptCard({ category, onClick }: CategoryPromptCardProp
               loading="lazy"
               className="h-full w-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/70 to-background/30" />
+            <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/40" />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Content */}
-      <div className="relative z-10 flex items-center justify-between gap-3">
+      <div className="relative z-10 flex items-center gap-3">
+        <div className="h-14 w-14 flex-shrink-0 overflow-hidden rounded-lg border border-primary/40">
+          <img
+            src={meta.image}
+            alt={`${meta.label} example`}
+            loading="lazy"
+            className="h-full w-full object-cover"
+          />
+        </div>
         <div className="min-w-0 flex-1">
-          <p className="font-heading text-xl tracking-wider text-primary">
+          <p className="font-heading text-lg tracking-wider text-primary">
             {meta.label}
           </p>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            {hovered ? meta.hint : meta.prompt}
+          <p className="mt-0.5 text-xs text-muted-foreground line-clamp-1">
+            {meta.prompt}
+          </p>
+          <p className="mt-0.5 text-[11px] italic text-accent/90 line-clamp-1">
+            e.g. {meta.hint}
           </p>
         </div>
         <span className="font-display text-2xl text-accent">+</span>
