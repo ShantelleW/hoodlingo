@@ -167,11 +167,14 @@ export type Database = {
           avatar_id: string | null
           created_at: string
           display_name: string | null
+          email: string | null
           games_played: number | null
           has_paid: boolean | null
           id: string
           initials: string | null
           is_og: boolean | null
+          last_digest_sent_at: string | null
+          notify_digest: boolean | null
           phone: string | null
           updated_at: string
           user_id: string
@@ -180,11 +183,14 @@ export type Database = {
           avatar_id?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           games_played?: number | null
           has_paid?: boolean | null
           id?: string
           initials?: string | null
           is_og?: boolean | null
+          last_digest_sent_at?: string | null
+          notify_digest?: boolean | null
           phone?: string | null
           updated_at?: string
           user_id: string
@@ -193,11 +199,14 @@ export type Database = {
           avatar_id?: string | null
           created_at?: string
           display_name?: string | null
+          email?: string | null
           games_played?: number | null
           has_paid?: boolean | null
           id?: string
           initials?: string | null
           is_og?: boolean | null
+          last_digest_sent_at?: string | null
+          notify_digest?: boolean | null
           phone?: string | null
           updated_at?: string
           user_id?: string
@@ -208,6 +217,7 @@ export type Database = {
         Row: {
           category: string
           correct_answer: string
+          correct_image_url: string | null
           created_at: string
           hint: string | null
           id: string
@@ -219,10 +229,12 @@ export type Database = {
           submitted_by: string
           votes_against: number | null
           votes_for: number | null
+          wrong_image_url: string | null
         }
         Insert: {
           category: string
           correct_answer: string
+          correct_image_url?: string | null
           created_at?: string
           hint?: string | null
           id?: string
@@ -234,10 +246,12 @@ export type Database = {
           submitted_by: string
           votes_against?: number | null
           votes_for?: number | null
+          wrong_image_url?: string | null
         }
         Update: {
           category?: string
           correct_answer?: string
+          correct_image_url?: string | null
           created_at?: string
           hint?: string | null
           id?: string
@@ -249,6 +263,7 @@ export type Database = {
           submitted_by?: string
           votes_against?: number | null
           votes_for?: number | null
+          wrong_image_url?: string | null
         }
         Relationships: []
       }
@@ -256,6 +271,7 @@ export type Database = {
         Row: {
           category: string
           correct_answer: string
+          correct_image_url: string | null
           created_at: string
           hint: string | null
           id: string
@@ -268,10 +284,12 @@ export type Database = {
           submitted_by: string | null
           votes_against: number | null
           votes_for: number | null
+          wrong_image_url: string | null
         }
         Insert: {
           category: string
           correct_answer: string
+          correct_image_url?: string | null
           created_at?: string
           hint?: string | null
           id?: string
@@ -284,10 +302,12 @@ export type Database = {
           submitted_by?: string | null
           votes_against?: number | null
           votes_for?: number | null
+          wrong_image_url?: string | null
         }
         Update: {
           category?: string
           correct_answer?: string
+          correct_image_url?: string | null
           created_at?: string
           hint?: string | null
           id?: string
@@ -300,6 +320,7 @@ export type Database = {
           submitted_by?: string | null
           votes_against?: number | null
           votes_for?: number | null
+          wrong_image_url?: string | null
         }
         Relationships: []
       }
