@@ -57,12 +57,8 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
           <div className={`h-12 w-12 rounded-full ${avatar.style} flex items-center justify-center text-xl border-2 border-white shadow-lg`}>
             {avatar.emoji}
           </div>
-          {profile?.has_paid && (
-            <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-yellow-400 to-orange-500 rounded-full flex items-center justify-center shadow-md">
-              <Crown className="w-3 h-3 text-white" />
-            </div>
-          )}
         </motion.div>
+
       </header>
 
       {/* Main Content */}
