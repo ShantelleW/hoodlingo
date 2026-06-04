@@ -29,6 +29,14 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
     } catch {
       // Haptics not available (browser)
     }
+    // Second thud as the door swings open
+    setTimeout(() => {
+      try {
+        Haptics.impact({ style: ImpactStyle.Medium });
+      } catch {
+        // Haptics not available (browser)
+      }
+    }, 200);
     setTimeout(() => {
       setShowForm(true);
       setKicking(false);
