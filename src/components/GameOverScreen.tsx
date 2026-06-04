@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { avatars, Avatar } from '@/data/avatars';
@@ -40,6 +41,7 @@ export function GameOverScreen({
   onRematch,
   challengeData
 }: GameOverScreenProps) {
+  const navigate = useNavigate();
   const { user, profile, updateProfile } = useAuth();
   const [initials, setInitials] = useState(profile?.initials || '');
   const [selectedAvatar, setSelectedAvatar] = useState<Avatar>(
@@ -324,6 +326,13 @@ export function GameOverScreen({
               🔁 AGAIN
             </Button>
           </div>
+          <Button
+            onClick={() => navigate('/competition')}
+            variant="outline"
+            className="w-full font-display py-5 border-primary text-primary hover:bg-primary hover:text-primary-foreground"
+          >
+            🏆 VIEW COMPETITION
+          </Button>
           <Button
             onClick={onGoHome}
             variant="ghost"
