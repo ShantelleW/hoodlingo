@@ -21,9 +21,14 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
   const [kicking, setKicking] = useState(false);
   const { signUp, signIn } = useAuth();
 
-  const handleShowForm = () => {
+  const handleShowForm = async () => {
     // Kick the door in first, then reveal the signup form
     setKicking(true);
+    try {
+      await Haptics.impact({ style: ImpactStyle.Heavy });
+    } catch {
+      // Haptics not available (browser)
+    }
     setTimeout(() => {
       setShowForm(true);
       setKicking(false);
