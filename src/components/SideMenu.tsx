@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { X, LogOut, Crown, Trophy, Lightbulb, Swords, ChevronRight, Clock, Settings } from 'lucide-react';
+import { X, LogOut, Crown, Trophy, Lightbulb, Swords, ChevronRight, Clock, Settings, Medal } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { avatars, getAvatarById } from '@/data/avatars';
 import { supabase } from '@/integrations/supabase/client';
@@ -205,6 +205,18 @@ export function SideMenu({ isOpen, onClose, onViewLeaderboard, onSubmitQuestion 
               >
                 <Trophy className="mr-3 h-5 w-5 text-primary" />
                 LEADERBOARD
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  onClose();
+                  navigate('/competition');
+                }}
+                className="w-full justify-start font-display text-lg"
+              >
+                <Medal className="mr-3 h-5 w-5 text-primary" />
+                COMPETITION
               </Button>
 
               <Button
