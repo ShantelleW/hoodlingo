@@ -688,23 +688,37 @@ export default function Admin() {
                       onClick={async () => {
                         setIsImporting(true);
                         try {
-                          const questionsToInsert = importedQuestions.map(q => ({
+                          const { valid, rejected } = validateAndSanitizeImport(importedQuestions);
+
+                          if (valid.length === 0) {
+                            toast.error('No valid questions to import. Check category, options (need 4), and that correct_answer matches one option.');
+                            return;
+                          }
+                          if (valid.length > MAX_BULK_IMPORT) {
+                            toast.error(`Maximum ${MAX_BULK_IMPORT} questions per import. Split your file.`);
+                            return;
+                          }
+                          if (rejected > 0) {
+                            toast.warning(`Skipping ${rejected} invalid row(s).`);
+                          }
+
+                          const questionsToInsert = valid.map((q) => ({
                             category: q.category,
                             question: q.question,
                             hint: q.hint || null,
                             options: q.options,
                             correct_answer: q.correct_answer,
-                            result_title: q.result_title || 'NICE!',
-                            result_commentary: q.result_commentary || 'You know your stuff!',
+                            result_title: q.result_title,
+                            result_commentary: q.result_commentary,
                             result_image_url: q.result_image_url || null,
                             is_approved: true,
                           }));
-                          
+
                           const { error } = await supabase.from('questions').insert(questionsToInsert);
-                          
+
                           if (error) throw error;
-                          
-                          toast.success(`Successfully imported ${importedQuestions.length} questions!`);
+
+                          toast.success(`Successfully imported ${valid.length} questions!`);
                           setImportedQuestions([]);
                         } catch (err) {
                           console.error(err);
@@ -715,6 +729,7 @@ export default function Admin() {
                       }}
                       className="bg-success hover:bg-success/90"
                     >
+
                       <Upload className="w-4 h-4 mr-2" />
                       {isImporting ? 'Importing...' : 'Import All'}
                     </Button>
