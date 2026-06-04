@@ -22,6 +22,9 @@ workflows:
             -scheme App \
             -configuration Release \
             -sdk iphoneos \
+            -allowProvisioningUpdates \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
             archive \
             -archivePath "$CM_BUILD_DIR/App.xcarchive"
     artifacts:
