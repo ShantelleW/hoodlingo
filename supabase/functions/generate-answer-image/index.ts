@@ -1,70 +1,76 @@
 import { corsHeaders } from 'npm:@supabase/supabase-js@2/cors';
-import { createClient } from 'npm:@supabase/supabase-js@2';
-
-interface Body {
-  prompt: string;
-  kind: 'correct' | 'wrong';
-}
 
 Deno.serve(async (req) => {
-  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders });
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders });
+  }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-    if (!authHeader) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_ANON_KEY')!,
-      { global: { headers: { Authorization: authHeader } } }
-    );
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-
-    const { prompt, kind } = await req.json() as Body;
-    if (!prompt || prompt.length > 500) {
-      return new Response(JSON.stringify({ error: 'Invalid prompt' }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const { prompt, kind } = await req.json();
+    if (!prompt || typeof prompt !== 'string') {
+      return new Response(JSON.stringify({ error: 'prompt is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const styled = kind === 'correct'
-      ? `Urban hip-hop celebration vibe, vibrant, gold accents, dynamic. ${prompt}`
-      : `Urban hip-hop disappointed/funny "wrong answer" vibe, dramatic, dark purple. ${prompt}`;
+    const styleHint =
+      kind === 'wrong'
+        ? 'A bold, comedic "wrong answer" reaction image, urban hip-hop aesthetic, vibrant colors, single subject centered, expressive.'
+        : 'A bold, celebratory "correct answer" image, urban hip-hop aesthetic, vibrant gold and purple, single subject centered, hype energy.';
 
-    const aiRes = await fetch('https://ai.gateway.lovable.dev/v1/images/generations', {
+    const apiKey = Deno.env.get('LOVABLE_API_KEY');
+    if (!apiKey) {
+      return new Response(JSON.stringify({ error: 'LOVABLE_API_KEY not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const res = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${Deno.env.get('LOVABLE_API_KEY')}`,
+        Authorization: `Bearer ${apiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash-image',
-        messages: [{ role: 'user', content: styled }],
+        messages: [
+          {
+            role: 'user',
+            content: `${styleHint}\n\nContext: ${prompt}`,
+          },
+        ],
         modalities: ['image', 'text'],
       }),
     });
 
-    if (!aiRes.ok) {
-      const errText = await aiRes.text();
-      if (aiRes.status === 429) return new Response(JSON.stringify({ error: 'Rate limited, try again shortly.' }), { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      if (aiRes.status === 402) return new Response(JSON.stringify({ error: 'AI credits exhausted. Add credits in workspace settings.' }), { status: 402, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-      return new Response(JSON.stringify({ error: 'AI failed', detail: errText }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    if (!res.ok) {
+      const text = await res.text();
+      return new Response(JSON.stringify({ error: 'AI image generation failed', detail: text }), {
+        status: res.status,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
     }
 
-    const json = await aiRes.json();
-    const b64 = json.data?.[0]?.b64_json;
-    if (!b64) return new Response(JSON.stringify({ error: 'No image returned' }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    const json = await res.json();
+    const imageUrl = json?.choices?.[0]?.message?.images?.[0]?.image_url?.url;
 
-    // Upload to storage as user
-    const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-    const path = `${user.id}/${crypto.randomUUID()}.png`;
-    const service = createClient(Deno.env.get('SUPABASE_URL')!, Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!);
-    const { error: upErr } = await service.storage.from('submission-images').upload(path, bytes, { contentType: 'image/png' });
-    if (upErr) throw upErr;
-    const { data: pub } = service.storage.from('submission-images').getPublicUrl(path);
+    if (!imageUrl) {
+      return new Response(JSON.stringify({ error: 'No image returned' }), {
+        status: 502,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    return new Response(JSON.stringify({ url: pub.publicUrl }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
-  } catch (e) {
-    console.error(e);
-    return new Response(JSON.stringify({ error: String(e) }), { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ imageUrl }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
+  } catch (err) {
+    console.error('generate-answer-image error', err);
+    return new Response(JSON.stringify({ error: 'Internal error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    });
   }
 });

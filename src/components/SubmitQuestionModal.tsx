@@ -100,17 +100,13 @@ export function SubmitQuestionModal({ category, onClose }: SubmitQuestionModalPr
 
       fireConfetti();
 
-      // Fire-and-forget preview email
-      supabase.functions.invoke('send-question-preview', {
-        body: { submissionId: inserted.id }
-      }).catch(err => console.warn('preview email failed', err));
-
       if (!profile?.is_og) {
         await updateProfile({ is_og: true } as any);
-        toast.success("🎉 You're now an OG! Preview sent to your email.");
+        toast.success("🎉 You're now an OG!");
       } else {
-        toast.success('Question submitted! Preview sent to your email.');
+        toast.success('Question submitted!');
       }
+
 
       setTimeout(onClose, 1200);
     } catch (error) {
