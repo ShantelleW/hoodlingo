@@ -160,6 +160,13 @@ export type Database = {
             referencedRelation: "question_submissions"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "og_votes_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "question_submissions_og"
+            referencedColumns: ["id"]
+          },
         ]
       }
       profiles: {
@@ -377,7 +384,57 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      question_submissions_og: {
+        Row: {
+          category: string | null
+          correct_image_url: string | null
+          created_at: string | null
+          hint: string | null
+          id: string | null
+          options: Json | null
+          question: string | null
+          result_commentary: string | null
+          result_title: string | null
+          status: string | null
+          submitted_by: string | null
+          votes_against: number | null
+          votes_for: number | null
+          wrong_image_url: string | null
+        }
+        Insert: {
+          category?: string | null
+          correct_image_url?: string | null
+          created_at?: string | null
+          hint?: string | null
+          id?: string | null
+          options?: Json | null
+          question?: string | null
+          result_commentary?: string | null
+          result_title?: string | null
+          status?: string | null
+          submitted_by?: string | null
+          votes_against?: number | null
+          votes_for?: number | null
+          wrong_image_url?: string | null
+        }
+        Update: {
+          category?: string | null
+          correct_image_url?: string | null
+          created_at?: string | null
+          hint?: string | null
+          id?: string | null
+          options?: Json | null
+          question?: string | null
+          result_commentary?: string | null
+          result_title?: string | null
+          status?: string | null
+          submitted_by?: string | null
+          votes_against?: number | null
+          votes_for?: number | null
+          wrong_image_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       get_leaderboard: {
