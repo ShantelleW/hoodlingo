@@ -1,4 +1,4 @@
-import { LeaderboardRow as Row, LeaderboardRow as RowType } from '@/hooks/useLeaderboard';
+import { LeaderboardRow as RowType } from '@/hooks/useLeaderboard';
 import { LeaderboardRow } from './LeaderboardRow';
 
 interface Props {
