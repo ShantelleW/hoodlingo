@@ -138,25 +138,12 @@ export function HomeScreen({ onCategorySelect, onMenuClick }: HomeScreenProps) {
               transition={{ delay: 0.7 }}
               className="mt-6 text-center"
             >
-              {profile.has_paid ? (
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-400/20 to-orange-500/20 rounded-full border border-yellow-400/30">
-                  <Crown className="w-4 h-4 text-yellow-500" />
-                  <span className="text-yellow-600 font-bold text-sm">UNLIMITED ACCESS</span>
-                </div>
-              ) : (
-                <>
-                  <p className="text-gray-500 text-sm">
-                    Games played: <span className="text-gray-800 font-bold">{profile.games_played || 0}</span>
-                  </p>
-                  {(profile.games_played || 0) >= 2 && (
-                    <p className="text-orange-500 text-xs mt-1">
-                      🔒 Unlock unlimited games for $1!
-                    </p>
-                  )}
-                </>
-              )}
+              <p className="text-gray-500 text-sm">
+                Games played: <span className="text-gray-800 font-bold">{profile.games_played || 0}</span>
+              </p>
             </motion.div>
           )}
+
         </div>
       </main>
     </div>
