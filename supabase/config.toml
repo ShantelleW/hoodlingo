@@ -5,6 +5,3 @@ verify_jwt = false
 
 [functions.validate-game-start]
 verify_jwt = false
-
-[functions.weekly-digest]
-verify_jwt = false
