@@ -8,6 +8,7 @@ import PaymentSuccess from "./pages/PaymentSuccess";
 import NotFound from "./pages/NotFound";
 import Admin from "./pages/Admin";
 import Competition from "./pages/Competition";
+import PlayerProfile from "./pages/PlayerProfile";
 import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
