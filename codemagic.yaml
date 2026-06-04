@@ -1,0 +1,33 @@
+workflows:
+  ios-release:
+    name: iOS Release
+    max_build_duration: 120
+    environment:
+      node: 20.0.0
+      xcode: 15.0
+      cocoapods: default
+      flutter: none
+      android: none
+    scripts:
+      - name: Install dependencies
+        script: |
+          npm ci
+      - name: Build web bundle
+        script: |
+          npm run build
+      - name: Sync Capacitor iOS
+        script: |
+          npx cap sync ios
+      - name: Install CocoaPods
+        script: |
+          cd ios/App && pod install
+      - name: Archive iOS app
+        script: |
+          xcodebuild -project ios/App/App.xcodeproj \
+            -scheme App \
+            -configuration Release \
+            -sdk iphoneos \
+            archive \
+            -archivePath "$CM_BUILD_DIR/App.xcarchive"
+    artifacts:
+      - build/App.xcarchive
