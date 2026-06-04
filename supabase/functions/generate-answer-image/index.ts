@@ -6,6 +6,9 @@ interface RequestBody {
   referenceImageBase64?: string; // data URL or raw base64
   referenceMimeType?: string;
   category?: string;
+  optionText?: string;
+  allOptions?: string[];
+  question?: string;
 }
 
 Deno.serve(async (req) => {
