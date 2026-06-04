@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { useAuth } from '@/hooks/useAuth';
+import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import projectDoor from '@/assets/project-door.jpg';
 import timbBoot from '@/assets/timb-boot-kick.png';
 
@@ -20,9 +21,22 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
   const [kicking, setKicking] = useState(false);
   const { signUp, signIn } = useAuth();
 
-  const handleShowForm = () => {
+  const handleShowForm = async () => {
     // Kick the door in first, then reveal the signup form
     setKicking(true);
+    try {
+      await Haptics.impact({ style: ImpactStyle.Heavy });
+    } catch {
+      // Haptics not available (browser)
+    }
+    // Second thud as the door swings open
+    setTimeout(() => {
+      try {
+        Haptics.impact({ style: ImpactStyle.Medium });
+      } catch {
+        // Haptics not available (browser)
+      }
+    }, 200);
     setTimeout(() => {
       setShowForm(true);
       setKicking(false);
