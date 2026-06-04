@@ -21,7 +21,12 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
   const { signUp, signIn } = useAuth();
 
   const handleShowForm = () => {
-    setShowForm(true);
+    // Kick the door in first, then reveal the signup form
+    setKicking(true);
+    setTimeout(() => {
+      setShowForm(true);
+      setKicking(false);
+    }, 1100);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -30,7 +35,7 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
     setLoading(true);
 
     try {
-      const result = isLogin 
+      const result = isLogin
         ? await signIn(email, password)
         : await signUp(email, password);
 
@@ -38,12 +43,8 @@ export function SignupScreen({ onComplete }: SignupScreenProps) {
         setError(result.error.message);
         setLoading(false);
       } else {
-        // Trigger kick animation on successful auth
-        setKicking(true);
-        // Wait for kick animation then complete
-        setTimeout(() => {
-          onComplete();
-        }, 1500);
+        // Auth success — just complete (door already kicked in)
+        setTimeout(() => onComplete(), 300);
       }
     } catch (err) {
       setError('Something went wrong. Try again.');
